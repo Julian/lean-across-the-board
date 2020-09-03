@@ -50,4 +50,6 @@ notation ` ♝ ` := chess.black_bishop
 notation ` ♞ ` := chess.black_knight
 notation ` ♟︎ ` := chess.black_pawn
 
+notation ` __ ` := none
+
 end chess
