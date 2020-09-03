@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  release:
+    types: [published]
+  schedule:
+    # Daily at 6:11
+    - cron: '11 6 * * *'
+
+
+jobs:
+  ci:
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Install elan
+      run: |
+        set -e
+        curl https://raw.githubusercontent.com/Kha/elan/master/elan-init.sh -sSf | sh -s -- -y
+        echo "::add-path::$HOME/.elan/bin/"
+
+    - name: Install leanpkg dependencies
+      run: brew install coreutils
+
+    - name: Build
+      run: leanpkg build
+
+    - name: Run tests
+      run: lean --json -T100000 --make test
