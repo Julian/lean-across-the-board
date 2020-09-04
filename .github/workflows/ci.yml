@@ -12,22 +12,9 @@ on:
 
 jobs:
   ci:
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v2
-
-    - name: Install elan
-      run: |
-        set -e
-        curl https://raw.githubusercontent.com/Kha/elan/master/elan-init.sh -sSf | sh -s -- -y
-        echo "::add-path::$HOME/.elan/bin/"
-
-    - name: Install leanpkg dependencies
-      run: brew install coreutils
-
-    - name: Build
-      run: leanpkg build
-
-    - name: Run tests
-      run: lean --json -T100000 --make test
+    - name: Build via lean
+      uses: leanprover-contrib/lean-build-action@master
