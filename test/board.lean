@@ -1,14 +1,17 @@
 import chess.board
 
 
-example : chess.board _ _ _ _ :=
+def b₁ : chess.board _ _ _ _ :=
   { chess.board .
     pieces := ![♞],
     contents := ![![(0 : fin 1)], ![__], ![__]],
     contains_pieces := dec_trivial,
     no_superimposed_pieces := dec_trivial, }
 
-example (p p' q q' r r' : chess.colored_pieces ) : chess.board _ _ _ _ :=
+example : chess.board.width b₁ = 1 := by refl
+example : chess.board.height b₁ = 3 := by refl
+
+example (p p' q q' r r' : chess.colored_pieces) : chess.board _ _ _ _ :=
   { chess.board .
     pieces := ![p, p', q, q', r, r'],
     contents := ![

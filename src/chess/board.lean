@@ -30,4 +30,12 @@ structure board :=
     (contents x' y').is_some →
       contents x y ≠ contents x' y')
 
+namespace board
+
+variables {m n ι K}
+def width (b : board m n ι K) : ℕ := fintype.card n
+def height (b : board m n ι K) : ℕ := fintype.card m
+
+end board
+
 end chess
