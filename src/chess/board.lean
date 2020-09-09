@@ -1,5 +1,8 @@
 import data.matrix.notation
+import tactic.dec_trivial
+
 import chess.piece
+
 
 /-!
 
@@ -21,14 +24,15 @@ which are placed on distinct squares.
 structure board :=
 (pieces : ι → K)
 (contents : matrix m n (option ι))
-(contains_pieces : ∀ ix : ι, ∃ x : m, ∃ y : n, contents x y = ix)
+(contains_pieces :
+  ∀ ix : ι, ∃ x : m, ∃ y : n, contents x y = ix . tactic.exact_dec_trivial)
 (no_superimposed_pieces :
   ∀ (x x' : m),
   ∀ (y y' : n),
     x ≠ x' → y ≠ y' →
     (contents x y).is_some →
     (contents x' y').is_some →
-      contents x y ≠ contents x' y')
+      contents x y ≠ contents x' y' . tactic.exact_dec_trivial)
 
 namespace board
 
