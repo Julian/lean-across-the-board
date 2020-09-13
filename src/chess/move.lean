@@ -1,3 +1,5 @@
+import tactic.dec_trivial
+
 import chess.board
 
 
@@ -16,5 +18,8 @@ structure move :=
 (board: board m n ι K)
 (start_square : m × n)
 (end_square : m × n)
+(occupied_start:
+    (board.contents start_square.1 start_square.2).is_some
+    . tactic.exact_dec_trivial)
 
 end chess
