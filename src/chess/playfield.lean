@@ -9,6 +9,13 @@ def playfield (X Y : Type) (R : Type) : Type* := prod X Y → option R
 
 section playfield
 
+/-- A conversion function to turn a `playfield` back to a `matrix`. -/
+def matrix_to_playfield {X Y R : Type} [fintype X] [fintype Y]
+  (M : matrix X Y (option R)) : playfield X Y R :=
+λ ⟨x, y⟩, M x y
+
+notation `PF` M := matrix_to_playfield M
+
 variables (M : playfield m n ι)
 
 /-- A `playfield` is by default `inhabited` by empty squares everywhere. -/
