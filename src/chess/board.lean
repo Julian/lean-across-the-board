@@ -1,6 +1,7 @@
 import data.matrix.notation
 import tactic.dec_trivial
 
+import chess.playfield
 import chess.piece
 
 
@@ -23,21 +24,22 @@ which are placed on distinct squares.
 -/
 structure board :=
 (pieces : ι → K)
-(contents : matrix m n (option ι))
+(contents : playfield m n ι)
 (contains_pieces :
-  ∀ ix : ι, ∃ x : m, ∃ y : n, contents x y = ix . tactic.exact_dec_trivial)
+  ∀ ix : ι, ∃ pos : m × n, contents pos = ix . tactic.exact_dec_trivial)
 (no_superimposed_pieces :
-  ∀ (x x' : m),
-  ∀ (y y' : n),
-    x ≠ x' → y ≠ y' →
-    (contents x y).is_some →
-    (contents x' y').is_some →
-      contents x y ≠ contents x' y' . tactic.exact_dec_trivial)
+  ∀ (pos pos' : m × n),
+    pos ≠ pos' →
+    contents pos ≠ __ →
+    contents pos' ≠ __ →
+      contents pos ≠ contents pos' . tactic.exact_dec_trivial)
 
 namespace board
 
 variables {m n ι K}
+/-- The width of the board. -/
 def width (b : board m n ι K) : ℕ := fintype.card n
+/-- The height of the board. -/
 def height (b : board m n ι K) : ℕ := fintype.card m
 
 end board
