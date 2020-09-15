@@ -20,7 +20,7 @@ variables (K : Type*)
 
 /--
 A board is axiomatized as a set of indexable (ergo distinguishable) pieces
-which are placed on distinct squares.
+which are placed on distinct squares of a `playfield`.
 -/
 structure board :=
 (pieces : ι → K)

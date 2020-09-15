@@ -5,11 +5,11 @@ variables {ι : Type}
 
 /-- A `playfield X Y R` represents a `matrix (X × Y) option R`,
 which is a model for a `X × Y` shaped game board where not every square is occupied. -/
-def playfield (X Y : Type) (R : Type) : Type* := prod X Y → option R
+def playfield (X Y : Type) (R : Type) : Type* := X × Y → option R
 
 section playfield
 
-/-- A conversion function to turn a `playfield` back to a `matrix`. -/
+/-- A conversion function to turn a bare `matrix` into a `playfield`. -/
 def matrix_to_playfield {X Y R : Type} [fintype X] [fintype Y]
   (M : matrix X Y (option R)) : playfield X Y R :=
 λ ⟨x, y⟩, M x y
