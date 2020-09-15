@@ -25,16 +25,18 @@ variables {K : Type*}
 
 variables (b : board m n ι K)
 
-/-- A move is an initial chess board along with the start and end squares
-    containing the piece which is moved. -/
+/-- A move is a (distinct) start and end square whose start square is
+    occupied and whose end square is not.
+
+    (Captures are not implemented yet.) -/
 structure move :=
 (start_square : m × n)
 (end_square : m × n)
-(diff_squares : end_square ≠ start_square)
+(diff_squares : end_square ≠ start_square . tactic.exact_dec_trivial)
 (occupied_start :
     b.contents start_square ≠ __
     . tactic.exact_dec_trivial)
-(unoccupied_end : b.contents end_square = __)
+(unoccupied_end : b.contents end_square = __ . tactic.exact_dec_trivial)
 
 variable {b}
 variable (f : move b)
