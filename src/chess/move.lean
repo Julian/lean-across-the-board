@@ -45,25 +45,31 @@ variable (f : move b)
 
 namespace move
 
+/-- Start squares are occupied before a move. -/
 @[simp] lemma before_occupied_start :
     b.contents f.start_square ≠ __ := f.occupied_start
 
+/-- End squares are unoccupied before a move. -/
 @[simp] lemma before_unoccupied_end :
     b.contents f.end_square = __ := f.unoccupied_end
 
+/-- Start squares are unoccupied after a move. -/
 @[simp] lemma after_unoccupied_start :
     b.contents.move_piece f.start_square f.end_square f.start_square = __ :=
 by simp only [playfield.move_piece_start, before_unoccupied_end]
 
+/-- End squares are occupied after a move. -/
 @[simp] lemma after_occupied_end :
     b.contents.move_piece f.start_square f.end_square f.end_square ≠ __ :=
 by simp only [playfield.move_piece_end, ne.def, not_false_iff, before_occupied_start]
 
+/-- Other squares are unchanged after a move. -/
 @[simp] lemma before_after_same (pos : m × n)
     (h : pos ≠ f.start_square) (h' : pos ≠ f.end_square) :
     b.contents.move_piece f.start_square f.end_square pos = b.contents pos :=
 b.contents.move_piece_diff h h'
 
+/-- Pieces do not disappear after a move. -/
 lemma retains_pieces (ix : ι) :
     ∃ pos, b.contents.move_piece f.start_square f.end_square pos = ix :=
 begin
@@ -81,7 +87,7 @@ begin
     simp [hs, he, ←h] }
 end
 
-
+/-- Pieces do not become superimposed after a move. -/
 lemma no_superimpose (pos pos') (hne : pos ≠ pos')
     (h : b.contents.move_piece f.start_square f.end_square pos ≠ __)
     (h' : b.contents.move_piece f.start_square f.end_square pos' ≠ __) :
