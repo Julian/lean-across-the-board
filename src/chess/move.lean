@@ -1,5 +1,5 @@
-import tactic.dec_trivial
 import data.equiv.basic
+import tactic.dec_trivial
 
 import chess.board
 
@@ -18,21 +18,23 @@ begin
   { exact or.inr (or.inr ⟨H, H'⟩) },
 end
 
-variables [fintype n] [fintype m] [decidable_eq n] [decidable_eq m]
+variables [fintype m] [fintype n] [decidable_eq m] [decidable_eq n]
 variables {ι : Type} [fintype ι] [decidable_eq ι]
 
 variables {K : Type*}
 
 variables (b : board m n ι K)
 
-/-- A move is a (distinct) start and end square whose start square is
-    occupied and whose end square is not.
+/--
+A move is a (distinct) start and end square whose start square is
+occupied and whose end square is not.
 
-    (Captures are not implemented yet.) -/
+(Captures are not implemented yet.)
+-/
 structure move :=
 (start_square : m × n)
 (end_square : m × n)
-(diff_squares : end_square ≠ start_square . tactic.exact_dec_trivial)
+(diff_squares : start_square ≠ end_square . tactic.exact_dec_trivial)
 (occupied_start :
     b.contents start_square ≠ __
     . tactic.exact_dec_trivial)
@@ -88,8 +90,7 @@ lemma no_superimpose (pos pos') (hne : pos ≠ pos')
 begin
   rcases split_eq pos f.end_square f.start_square with rfl|rfl|⟨hE, hS⟩;
   rcases split_eq pos' f.end_square f.start_square with rfl|rfl|⟨hE', hS'⟩,
-  { contradiction },
-  { exfalso, simpa only [move.after_unoccupied_start] using h' },
+  { contradiction }, { exfalso, simpa only [move.after_unoccupied_start] using h' },
   { have occ' : b.contents pos' ≠ __,
     { intro H, apply h',
       simpa only [hS', hE', playfield.move_piece_diff, ne.def, not_false_iff] using H },
