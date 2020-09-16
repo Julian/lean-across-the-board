@@ -9,14 +9,7 @@ namespace chess
 variables {m n : Type}
 
 lemma split_eq (x : m × n) (p p' : m × n) :
-  x = p ∨ x = p' ∨ (x ≠ p ∧ x ≠ p') :=
-begin
-  by_cases H : x = p,
-  { exact or.inl H },
-  by_cases H' : x = p',
-  { exact or.inr (or.inl H') },
-  { exact or.inr (or.inr ⟨H, H'⟩) },
-end
+  x = p ∨ x = p' ∨ (x ≠ p ∧ x ≠ p') := by tauto
 
 variables [fintype m] [fintype n] [decidable_eq m] [decidable_eq n]
 variables {ι : Type} [fintype ι] [decidable_eq ι]
