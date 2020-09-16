@@ -3,9 +3,11 @@ import data.matrix.notation
 variables {m n : Type}
 variables {ι : Type}
 
-/-- A `playfield X Y R` represents a `matrix (X × Y) option R`, which
-    is a model for a `X × Y` shaped game board where not every square is
-    occupied. -/
+/--
+A `playfield X Y R` represents a `matrix (X × Y) option R`, which is
+a model for a `X × Y` shaped game board where not every square is
+occupied.
+-/
 def playfield (X Y : Type) (R : Type) : Type* := X × Y → option R
 
 section playfield
@@ -29,10 +31,12 @@ variables [decidable_eq m] [decidable_eq n]
 variables (M : playfield m n ι)
 variables (start_square end_square : m × n)
 
-/-- Move a `piece` from `start_square` to `end_square` on a
-    `playfield`, swapping the pieces at those squares.
+/--
+Move a `piece` from `start_square` to `end_square` on a `playfield`,
+swapping the pieces at those squares.
 
-    Does not assume anything about occupancy. -/
+Does not assume anything about occupancy.
+-/
 def move_piece : playfield m n ι :=
 λ pos, M (equiv.swap start_square end_square pos)
 
