@@ -125,8 +125,6 @@ end
 
 end move
 
-variables (b) (f)
-
 /-- A valid `move` on a `board` retains a valid board state. -/
 def perform_move : board m n ι K :=
 { pieces := b.pieces,
