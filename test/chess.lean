@@ -35,9 +35,7 @@ example (p p' q q' r r' : chess.colored_pieces) : chess.board _ _ _ _ :=
       ![__, __, 0 , 5 , __, __],
       ![1 , __, 3 , __, __, __],
       ![__, __, __, __, 2 , 4 ]
-    ],
-    contains_pieces := dec_trivial,
-    no_superimposed_pieces := dec_trivial, }
+    ] }
 
 
 def downright : chess.move b₁ := {start_square := (0, 0), end_square := (2, 1)}
