@@ -30,7 +30,7 @@ example : chess.board.height b₁ = 3 := rfl
 
 def downright : chess.move b₁ := {start_square := (0, 0), end_square := (2, 1)}
 
-example : 0 ∈ b₁ := by dec_trivial
+example : 0 ∈ b₁ := dec_trivial
 
 example (p p' q q' r r' : chess.colored_pieces) : chess.board _ _ _ _ :=
   { chess.board .
