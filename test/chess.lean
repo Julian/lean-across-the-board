@@ -28,6 +28,10 @@ def b₁ : chess.board _ _ _ _ :=
 example : chess.board.width b₁ = 2 := rfl
 example : chess.board.height b₁ = 3 := rfl
 
+def downright : chess.move b₁ := {start_square := (0, 0), end_square := (2, 1)}
+
+example : 0 ∈ b₁ := by use (0, 0); exact rfl
+
 example (p p' q q' r r' : chess.colored_pieces) : chess.board _ _ _ _ :=
   { chess.board .
     pieces := ![p, p', q, q', r, r'],
@@ -37,5 +41,3 @@ example (p p' q q' r r' : chess.colored_pieces) : chess.board _ _ _ _ :=
       ![__, __, __, __, 2 , 4 ]
     ] }
 
-
-def downright : chess.move b₁ := {start_square := (0, 0), end_square := (2, 1)}

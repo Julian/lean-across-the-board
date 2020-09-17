@@ -42,6 +42,12 @@ def width (b : board m n ι K) : ℕ := fintype.card n
 /-- The height of the board. -/
 def height (b : board m n ι K) : ℕ := fintype.card m
 
+protected def mem (ix : ι) (b: board m n ι K) :=
+∃ pos, b.contents pos = ix
+
+instance : has_mem ι (board m n ι K) :=
+⟨board.mem⟩
+
 end board
 
 end chess
