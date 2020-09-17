@@ -28,9 +28,7 @@ structure move :=
 (start_square : m × n)
 (end_square : m × n)
 (diff_squares : start_square ≠ end_square . tactic.exact_dec_trivial)
-(occupied_start :
-    b.contents start_square ≠ __
-    . tactic.exact_dec_trivial)
+(occupied_start : b.contents start_square ≠ __ . tactic.exact_dec_trivial)
 (unoccupied_end : b.contents end_square = __ . tactic.exact_dec_trivial)
 
 variable {b}
