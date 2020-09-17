@@ -32,7 +32,9 @@ def downright : chess.move b₁ := {start_square := (0, 0), end_square := (2, 1)
 
 example : 0 ∈ b₁ := dec_trivial
 
-example (p p' q q' r r' : chess.colored_pieces) : chess.board _ _ _ _ :=
+variables {p p' q q' r r' : chess.colored_pieces}
+
+def b₂ : chess.board _ _ _ _ :=
   { chess.board .
     pieces := ![p, p', q, q', r, r'],
     contents := PF ![
@@ -40,4 +42,3 @@ example (p p' q q' r r' : chess.colored_pieces) : chess.board _ _ _ _ :=
       ![1 , __, 3 , __, __, __],
       ![__, __, __, __, 2 , 4 ]
     ] }
-
