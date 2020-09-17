@@ -71,7 +71,7 @@ begin
   by_cases he : pos = f.end_square,
   { have H := f.diff_squares,
     rw [←hs, ←he] at H,
-    exact absurd (eq.refl pos) H },
+    contradiction },
   { use f.end_square,
     simp [hs, he, ←h] },
   { use f.start_square,
