@@ -26,7 +26,7 @@ structure board :=
 (pieces : ι → K)
 (contents : playfield m n ι)
 (contains_pieces :
-  ∀ ix : ι, ∃ pos : m × n, contents pos = ix . tactic.exact_dec_trivial)
+  ∀ ix : ι, ix ∈ contents . tactic.exact_dec_trivial)
 (no_superimposed_pieces :
   ∀ (pos pos' : m × n),
     pos ≠ pos' →
@@ -43,7 +43,7 @@ def width (b : board m n ι K) : ℕ := fintype.card n
 def height (b : board m n ι K) : ℕ := fintype.card m
 
 instance : has_mem ι (board m n ι K) :=
-⟨λ ix b, ∃ pos, b.contents pos = ix⟩
+⟨λ ix b, ix ∈ b.contents⟩
 
 end board
 

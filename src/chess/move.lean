@@ -64,7 +64,7 @@ b.contents.move_piece_diff h h'
 
 /-- Pieces do not disappear after a move. -/
 lemma retains_pieces (ix : ι) :
-    ∃ pos, b.contents.move_piece f.start_square f.end_square pos = ix :=
+    ix ∈ b.contents.move_piece f.start_square f.end_square :=
 begin
   obtain ⟨pos, h⟩ := b.contains_pieces ix,
   by_cases hs : pos = f.start_square;

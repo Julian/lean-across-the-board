@@ -27,6 +27,9 @@ namespace playfield
 
 section move_piece
 
+instance : has_mem ι (playfield m n ι) :=
+⟨λ ix p, ∃ pos, p pos = ix⟩
+
 variables [decidable_eq m] [decidable_eq n]
 variables (M : playfield m n ι)
 variables (start_square end_square : m × n)
