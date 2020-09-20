@@ -60,6 +60,13 @@ by simp only [playfield.move_piece_end, ne.def, not_false_iff, before_occupied_s
     b.contents.move_piece f.start_square f.end_square pos = b.contents pos :=
 b.contents.move_piece_diff h h'
 
+@[simp] lemma start_square_is_some :
+  (b.contents f.start_square).is_some :=
+by simp only [option.ne_none_iff_is_some.mp f.occupied_start, before_occupied_start]
+
+def piece : K :=
+(b.pieces (option.get f.start_square_is_some))
+
 /-- Pieces do not disappear after a move. -/
 lemma retains_pieces (ix : ι) :
     ix ∈ b.contents.move_piece f.start_square f.end_square :=

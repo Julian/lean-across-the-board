@@ -35,6 +35,9 @@ example : 0 ∈ b₁ := dec_trivial
 
 example : ♞ ≠ ♚ := dec_trivial
 
+example : downright.piece = ♞ := rfl
+example : downright.piece ≠ ♚ := dec_trivial
+
 variables {p p' q q' r r' : chess.colored_pieces}
 
 def b₂ : chess.board _ _ _ _ :=
