@@ -6,10 +6,12 @@ Chess piece implementation.
 
 namespace chess
 
+@[derive decidable_eq]
 inductive color
 | white
 | black
 
+@[derive decidable_eq]
 inductive pieces
 | bishop
 | king
@@ -18,6 +20,7 @@ inductive pieces
 | queen
 | rook
 
+@[derive decidable_eq]
 class colored_pieces :=
 (piece : pieces)
 (color : color)
