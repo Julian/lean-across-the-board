@@ -58,4 +58,29 @@ def ending_position : chess.board _ _ _ _ := {
 
 -- Direct solution
 
+def guarini_seq := [
+  ((2, 0), (0, 1)),
+  ((2, 2), (1, 0)),
+  ((0, 1), (2, 2)),
+  ((0, 2), (2, 1)),
+  ((0, 0), (1, 2)),
+  ((1, 2), (2, 0)),
+  ((2, 0), (0, 1)),
+  ((2, 1), (0, 0)),
+  ((0, 0), (1, 2)),
+  ((1, 0), (0, 2)),
+  ((0, 2), (2, 1)),
+  ((2, 2), (1, 0)),
+  ((1, 0), (0, 2)),
+  ((0, 1), (2, 2)),
+  ((2, 1), (0, 0)),
+  ((1, 2), (0, 2))
+]
+
+/-  Pseudo-proof of a direct solution
+lemma starting_position.exists_move_seq ending_position := begin
+  use guarini_seq,
+end
+-/
+
 -- Graph-equivalence
