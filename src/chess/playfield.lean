@@ -129,6 +129,16 @@ See "Implementation details".
 instance : has_mem ι (playfield m n ι) :=
 ⟨λ ix p, ∃ pos, p pos = some ix⟩
 
+section decidable
+
+variables [decidable_eq m] [decidable_eq n]
+variables [fintype ι] [decidable_eq ι]
+
+instance playfield_decidable_in [fintype m] [fintype n] {pf : playfield m n ι} {ix : ι} :
+  decidable (ix ∈ pf) := fintype.decidable_exists_fintype
+
+end decidable
+
 -- Fix a `pf : playfield m n ι` to use in definitions and lemmas below
 variables (pf : playfield m n ι)
 

@@ -91,6 +91,9 @@ instance : has_equiv (board m n ι K) := ⟨λ b b', reduce b = reduce b'⟩
 instance : has_mem ι (board m n ι K) :=
 ⟨λ ix b, ix ∈ b.contents⟩
 
+instance contents_decidable {b : board m n ι K} {ix : ι} : decidable (ix ∈ b) :=
+set.decidable_mem ((∈) ix) b
+
 lemma retains_pieces (b : board m n ι K) (ix : ι) : ix ∈ b.contents :=
 begin
   obtain ⟨pos, h⟩ := b.contains ix,
