@@ -121,14 +121,23 @@ none, none, none;
 ((2, 0), (0, 1)), ((2, 2), (1, 0)), ((0, 1), (2, 2)), ((0, 2), (2, 1)), ((0, 0), (1, 2)), ((1, 2), (2, 0)), ((2, 0), (0, 1)), ((2, 1), (0, 0)), ((0, 0), (1, 2)), ((1, 0), (0, 2)), ((0, 2), (2, 1)), ((2, 2), (1, 0)), ((1, 0), (0, 2)), ((0, 1), (2, 2)), ((2, 1), (0, 0)), ((1, 2), (2, 0)))
 -/
 
-#eval let ix := 16 in let subseq := ((vector.of_fn guarini_seq).take ix).reverse in
-  prod.map id (vector.nth ∘ vector.reverse) $
-  vector.map_accumr
-  (λ (x : prod _ _) acc, (playfield.move_piece acc x.fst x.snd, x))
-  subseq
-  starting_position.contents
+def vector.scanr {α β : Type*} {n : ℕ} (f : α → β → β) (v : vector α n) (b : β) : vector β n :=
+prod.snd ((vector.map_accumr (λ x acc, (f x acc, f x acc)) v b))
+
+def vector.scanl {α β : Type*} {n : ℕ} (f : β → α → β) (b : β) (v : vector α n) : vector β n :=
+vector.reverse (vector.scanr (λ acc x, f x acc) (vector.reverse v) b)
+
+def guarini_seq.scan_contents : fin _ → playfield _ _ _ :=
+(vector.scanl (λ acc (x : prod _ _), playfield.move_piece acc x.fst x.snd)
+  starting_position.contents (vector.of_fn guarini_seq)).nth
 
 example : ∀ ix, (guarini_seq ix).fst ≠ (guarini_seq ix).snd := dec_trivial
+
+def guarini_position : chess.board _ _ _ _ :=
+  { contents := guarini_seq.scan_contents (fin.last _),
+    pieces := starting_position.pieces }
+
+example : guarini_position.reduce = ending_position.reduce := dec_trivial
 
 /-  Pseudo-proof of a direct solution
 lemma starting_position.exists_move_seq ending_position := begin
