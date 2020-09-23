@@ -137,7 +137,7 @@ def guarini_position : chess.board _ _ _ _ :=
   { contents := guarini_seq.scan_contents (fin.last _),
     pieces := starting_position.pieces }
 
-example : guarini_position.reduce = ending_position.reduce := dec_trivial
+example : guarini_position ≈ ending_position := dec_trivial
 
 /-  Pseudo-proof of a direct solution
 lemma starting_position.exists_move_seq ending_position := begin
