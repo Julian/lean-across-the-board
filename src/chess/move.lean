@@ -122,9 +122,7 @@ begin
     simpa only [hS, hE, hS', hE', move.before_after_same, ne.def, not_false_iff] using H }
 end
 
-end move
-
-variables (b) (f)
+variables (f) (b)
 
 /-- A valid `move` on a `board` retains a valid board state. -/
 def perform_move : board m n ι K :=
@@ -132,5 +130,7 @@ def perform_move : board m n ι K :=
   contents := b.contents.move_piece f.start_square f.end_square,
   contains_pieces := f.retains_pieces,
   no_superimposed_pieces := f.no_superimpose }
+
+end move
 
 end chess
