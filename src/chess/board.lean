@@ -59,6 +59,10 @@ def width (b : board m n ι K) : ℕ := fintype.card n
 /-- The height of the board. -/
 def height (b : board m n ι K) : ℕ := fintype.card m
 
+/-- The state of the board, where pieces of the same type are equivalent -/
+def reduce (b : board m n ι K) : playfield m n K :=
+λ pos, option.map b.pieces (b.contents pos)
+
 instance : has_mem ι (board m n ι K) :=
 ⟨λ ix b, ix ∈ b.contents⟩
 
