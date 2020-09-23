@@ -75,7 +75,7 @@ def board_repr_pieces (b : board (fin m') (fin n') (fin ix) K) : string :=
 playfield.vec_repr b.pieces ++ ";\n\n"
 
 def board_repr_contents (b : board (fin m') (fin n') (fin ix) K) : string :=
-playfield.matrix_repr (λ x y, option_wrap (option.map b.pieces (b.contents ⟨x, y⟩)) "\uFF3F")
+playfield.matrix_repr (λ x y, option_wrap (b.reduce ⟨x, y⟩) "\uFF3F")
 
 def board_repr {K : Type*} [has_repr K] {n m ix : ℕ}
   (b : board (fin m) (fin n) (fin ix) K) : string :=
