@@ -30,6 +30,24 @@ section move_piece
 instance : has_mem ι (playfield m n ι) :=
 ⟨λ ix p, ∃ pos, p pos = ix⟩
 
+def vec_repr {α : Type*} [has_repr α] : Π {n}, (fin n → α) → string
+| 0       _ := ""
+| 1       v := repr (matrix.vec_head v)
+| (n + 1) v := repr (matrix.vec_head v) ++ ", " ++ vec_repr (matrix.vec_tail v)
+
+instance vec_repr_instance {α : Type*} [has_repr α] {n : ℕ} : has_repr (fin n → α) := ⟨vec_repr⟩
+
+def matrix_repr {R : Type*} [has_repr R] : Π {m n}, matrix (fin m) (fin n) R → string
+| 0       _ _ := ""
+| 1       n v := vec_repr v.vec_head
+| (m + 1) n v := vec_repr v.vec_head ++ ";\n" ++ matrix_repr v.vec_tail
+
+instance matrix_repr_instance {R : Type*} [has_repr R] {n m : ℕ} :
+  has_repr (matrix (fin n) (fin m) R) := ⟨matrix_repr⟩
+
+instance playfield_repr_instance {R : Type*} [has_repr R] {n m : ℕ} :
+  has_repr (playfield (fin n) (fin m) R) := ⟨matrix_repr ∘ function.curry⟩
+
 variables [decidable_eq m] [decidable_eq n]
 variables (M : playfield m n ι)
 variables (start_square end_square : m × n)

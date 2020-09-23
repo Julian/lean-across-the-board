@@ -83,14 +83,12 @@ local attribute [instance] inhabited_fin3
 def first_move : chess.move starting_position :=
 let pair := guarini_seq.head in ⟨pair.fst, pair.snd, dec_trivial, dec_trivial, dec_trivial⟩
 
-def fin_repr {α : Type*} [has_repr α] : Π {n}, (fin n → α) → string
-| 0       _ := ""
-| (n + 1) v := repr (matrix.vec_head v) ++ ", " ++ fin_repr (matrix.vec_tail v)
-
-instance fin_repr_instance {α : Type*} {n : ℕ} [has_repr α] : has_repr (fin n → α) :=
-⟨fin_repr⟩
-
 #eval starting_position.pieces
+
+#eval starting_position.contents
+
+#eval starting_position
+#eval chess.perform_move starting_position first_move
 
 
 /-  Pseudo-proof of a direct solution

@@ -18,6 +18,23 @@ variables (ι : Type) [fintype ι] [decidable_eq ι]
 
 variables (K : Type*)
 
+section wrap
+
+variables [has_repr K]
+
+structure option_wrapper :=
+(val : option K)
+(none_s : string)
+
+instance wrapped_option_repr : has_repr (option_wrapper K) :=
+⟨λ ⟨val, s⟩, (option.map has_repr.repr val).get_or_else s⟩
+
+variables {K}
+def option_wrap (val : option K) (none_s : string) : option_wrapper K := ⟨val, none_s⟩
+
+end wrap
+
+
 /--
 A board is axiomatized as a set of indexable (ergo distinguishable) pieces
 which are placed on distinct squares of a `playfield`.
@@ -44,6 +61,25 @@ def height (b : board m n ι K) : ℕ := fintype.card m
 
 instance : has_mem ι (board m n ι K) :=
 ⟨λ ix b, ix ∈ b.contents⟩
+
+section repr
+
+variables [has_repr K]
+variables {n' m' ix : ℕ}
+
+def board_repr_pieces (b : board (fin m') (fin n') (fin ix) K) : string :=
+playfield.vec_repr b.pieces ++ ";\n\n"
+
+def board_repr_contents (b : board (fin m') (fin n') (fin ix) K) : string :=
+playfield.matrix_repr (λ x y, option_wrap (option.map b.pieces (b.contents ⟨x, y⟩)) "\uFF3F")
+
+def board_repr {K : Type*} [has_repr K] {n m ix : ℕ}
+  (b : board (fin m) (fin n) (fin ix) K) : string :=
+b.board_repr_pieces ++ b.board_repr_contents
+
+instance board_repr_instance : has_repr (board (fin m') (fin n') (fin ix) K) := ⟨board_repr⟩
+
+end repr
 
 end board
 
