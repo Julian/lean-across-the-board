@@ -1,14 +1,14 @@
 import data.matrix.notation
 
-variables {m n : Type}
-variables {ι : Type}
+variables {m n : Type*}
+variables {ι : Type*}
 
 /--
 A `playfield X Y R` represents a `matrix (X × Y) option R`, which is
 a model for a `X × Y` shaped game board where not every square is
 occupied.
 -/
-def playfield (X Y : Type) (R : Type) : Type* := X × Y → option R
+def playfield (X Y : Type*) (R : Type*) : Type* := X × Y → option R
 
 section playfield
 

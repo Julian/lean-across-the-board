@@ -6,13 +6,13 @@ import chess.board
 
 namespace chess
 
-variables {m n : Type}
+variables {m n : Type*}
 
 lemma split_eq (x : m × n) (p p' : m × n) :
   x = p ∨ x = p' ∨ (x ≠ p ∧ x ≠ p') := by tauto
 
 variables [fintype m] [fintype n] [decidable_eq m] [decidable_eq n]
-variables {ι : Type} [fintype ι] [decidable_eq ι]
+variables {ι : Type*} [fintype ι] [decidable_eq ι]
 
 variables {K : Type*}
 

@@ -13,8 +13,8 @@ Straightforward implementation of a chess board.
 
 namespace chess
 
-variables (m n : Type) [fintype n] [decidable_eq n] [fintype m] [decidable_eq m]
-variables (ι : Type) [fintype ι] [decidable_eq ι]
+variables (m n : Type*) [fintype n] [decidable_eq n] [fintype m] [decidable_eq m]
+variables (ι : Type*) [fintype ι] [decidable_eq ι]
 
 variables (K : Type*)
 
