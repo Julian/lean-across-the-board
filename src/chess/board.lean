@@ -130,11 +130,10 @@ variables [has_repr K]
 variables {n' m' ix : ℕ}
 
 /--
-A board's `pieces` is a "vector", so `vec_repr` is used to represent it,
-appended by two newlines to separate it from the representation of `contents`.
+A board's `pieces` is a "vector", so `vec_repr` is used to represent it.
 -/
 def board_repr_pieces (b : board (fin m') (fin n') (fin ix) K) : string :=
-playfield.vec_repr b.pieces ++ ";\n\n"
+playfield.vec_repr b.pieces
 
 /--
 A board's `contents` can be represented by reducing the board according to
@@ -148,11 +147,11 @@ playfield.matrix_repr (λ x y, option_wrap (b.reduce ⟨x, y⟩) "\uFF3F")
 /--
 A board's representation is just the concatentation of the representations
 of the `pieces` and `contents` via `board_repr_pieces` and `board_repr_contents`,
-respectively.
+respectively, with newlines inserted for clarity.
 -/
 def board_repr {K : Type*} [has_repr K] {n m ix : ℕ}
   (b : board (fin m) (fin n) (fin ix) K) : string :=
-b.board_repr_pieces ++ b.board_repr_contents
+b.board_repr_pieces ++ ";\n\n" ++ b.board_repr_contents
 
 instance board_repr_instance : has_repr (board (fin m') (fin n') (fin ix) K) := ⟨board_repr⟩
 
