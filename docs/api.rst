@@ -5,6 +5,47 @@ API Reference
 ``chess.board``
 ---------------
 
+# Definitions and theorems about a chess board
+
+## Summary
+
+The chess board is a set of indexed `piece`s on a `playfield`. A board is valid,
+and can only be constructed, if all the pieces are present on the board, and no two
+distinct (by index) pieces share the same position on the board.
+
+## Main definitions
+
+1. The `board` itself, which requires an indexed vector of `piece`s,
+and the `playfield` which will serve as the where those pieces are placed.
+Additionally, all pieces must be present on the playfield, and no two distinct (by index)
+pieces can share a position on the playfield.
+
+2. A way to reduce the board, following the indices to just the pieces. This allows
+comparison of boards that are equivalent modulo permutation of indices that point to
+equivalent pieces.
+
+## Implementation notes
+
+1. A `board` requires finite dimensions for the `playfield`, finite indices, and a
+finite piece set. Ideally, this should be generizable to potentially infinite types.
+However, since `playfield`s are usually provided by `matrix`, which is restricted
+to finite dimensions, it is easiest to define the board as finite. Additionally,
+to perform position math, more constraints on the dimension types will likely be
+necessary, like `decidable_linear_order`.
+
+2. The requirement of `decidable_eq` on the dimensions and index allows use of
+`dec_trivial` to automatically infer proofs for board constraint propositions.
+That means instantiation of a `board` will not require explicit proofs for the propositions.
+
+3. The board does not define what are valid position comparisons -- the geometry of
+the space is not defined other than what the `playfield` provides.
+
+4. Currently, all pieces are constrained by the definition of a board to be present
+on the playfield. That means no capturing moves and no piece introduction moves are possible.
+
+.. module:: chess.board
+
+
 .. definition:: chess.board
 
     A board is axiomatized as a set of indexable (ergo distinguishable) pieces
@@ -69,6 +110,9 @@ API Reference
 ``chess.move``
 --------------
 
+.. module:: chess.move
+
+
 .. definition:: chess.move
 
     A move is a (distinct) start and end square whose start square is
@@ -122,6 +166,11 @@ API Reference
 
 ``chess.piece``
 ---------------
+
+Chess piece implementation.
+
+.. module:: chess.piece
+
 
 .. definition:: chess.black_bishop
 
@@ -205,6 +254,50 @@ API Reference
 
 ``chess.playfield``
 -------------------
+
+# Definitions and theorems about the chess board field
+
+## Summary
+
+The field on which chess pieces are placed is a 2D plane, where each
+position corresponds to a piece index. This is because we think of
+defining pieces and moves, usually, by indicating which position
+they are at, and which position they are moved to.
+
+## Main definitions
+
+1. The playfield itself (`playfield`)
+2. Conversion from a `matrix` of (possibly) occupied spaces to a `playfield`
+3. Moving a piece by switching the indices at two specified positions using `move_piece`
+
+## Implementation details
+
+1. The `playfield` type itself has no requirements to be finite in any dimension,
+or that the indices used are finite. We represent the actual index wrapped by
+`option`, such that the empty square can be an `option.none`. The playfield definition
+wraps the two types used to define the dimensions of the board into a pair.
+
+2. In the current implementation, the way to construct a `playfield` is to provide
+a matrix. This limits the `playfield` to a finite 2D plane. Another possible implementation
+is of a "sparse matrix", where for each index, we can look up where the piece is.
+This now allows for an infinite playfield, but still complicates using infinite pieces.
+For now, the closely-tied `matrix` definition makes `playfield` a light type wrapper
+on top of `matrix`, i.e. a function of two variables.
+
+3. Currently, `move_piece` just swaps the (potentially absent) indices at two positions.
+This is done by using an `equiv.swap` as an updating function. For now, this means that
+moves that use `move_piece` are non-capturing. Additionally, no math or other requirements
+on the positions or their contents is required. This means that `move_piece` supports a
+move from a position to itself. A separate `move` is defined in `chess.move` that has
+more chess-like rule constraints.
+
+4. Index presence on the board is not limited to have each index on at-most-one position.
+Preventing duplication of indices is not enforced by the `playfield` itself. However,
+any given position can hold at-most-one index on it. The actual chess-like rule constraints
+are in `chess.board`.
+
+.. module:: chess.playfield
+
 
 .. definition:: matrix_to_playfield
 
@@ -300,6 +393,45 @@ API Reference
 
 ``guarini``
 -----------
+
+"Proof" of Guarini's Problem: swapping some knights.
+
+Given a board like:
+
+    ♞ _ ♞
+    _ _ _
+    ♘ _ ♘
+
+Guarini's problem asks for a sequence of moves that swaps the knights,
+producing:
+
+    ♘ _ ♘
+    _ _ _
+    ♞ _ ♞
+
+Solution::
+
+    ♞ _ ♞     ♞ _ ♞     ♞ _ _     ♞ _ ♘     _ _ ♘
+    _ _ _  →  ♘ _ _  →  ♘ _ _  →  _ _ _  →  _ _ ♞
+    ♘ _ ♘     ♘ _ _     ♘ ♞ _     ♘ ♞ _     ♘ ♞ _
+
+
+              _ ♘ ♘     _ _ ♘     _ _ ♘     _ _ ♘
+           →  _ _ ♞  →  _ _ ♞  →  ♘ _ ♞  →  ♘ _ _
+              _ ♞ _     _ ♞ ♘     _ ♞ _     ♞ ♞ _
+
+
+              _ ♞ ♘     ♞ ♞ ♘     _ ♞ ♘     _ ♞ _
+           →  ♘ _ _  →  ♘ _ _  →  ♘ _ ♞  →  ♘ _ ♞
+              _ ♞ _     _ _ _     _ _ _     _ ♘ _
+
+
+              ♘ ♞ _     ♘ ♞ ♘     ♘ ♞ ♘     ♘ _ ♘
+           →  ♘ _ ♞  →  _ _ ♞  →  _ _ _  →  _ _ _
+              _ _ _     _ _ _     ♞ _ _     ♞ _ ♞
+
+.. module:: guarini
+
 
 .. definition:: ending_position
 
