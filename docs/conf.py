@@ -72,6 +72,7 @@ autodoc_default_options = {
 
 # -- Options for autosectionlabel extension ----------------------------------
 
+autosectionlabel_maxdepth = 2
 autosectionlabel_prefix_document = True
 
 # -- Options for the linkcheck builder ------------------------------------
