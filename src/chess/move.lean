@@ -122,7 +122,7 @@ begin
     simpa only [hS, hE, hS', hE', move.before_after_same, ne.def, not_false_iff] using H }
 end
 
-variables (f) (b)
+variables (f)
 
 /-- A valid `move` on a `board` retains a valid board state. -/
 def perform_move : board m n ι K :=

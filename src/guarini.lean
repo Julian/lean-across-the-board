@@ -112,7 +112,7 @@ let pair := guarini_seq 0 in ⟨pair.fst, pair.snd, dec_trivial, dec_trivial, de
 ＿, ＿, ♘
 -/
 
-#eval first_move.perform_move starting_position
+#eval first_move.perform_move
 
 /-
 ((some 3), none, (some 2);
