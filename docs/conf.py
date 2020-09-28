@@ -4,7 +4,9 @@
 # list see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
+from pathlib import Path
 import re
+import toml
 
 
 # -- Project information -----------------------------------------------------
@@ -12,6 +14,9 @@ import re
 project = "Lean: Across the Board"
 author = "Julian Berman"
 copyright = "2020, " + author
+
+leanpkg = Path(__file__).parent.parent / "leanpkg.toml"
+version = release = toml.loads(leanpkg.read_text())["package"]["version"]
 
 
 # -- General configuration ---------------------------------------------------

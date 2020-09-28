@@ -32,6 +32,7 @@ sphinxcontrib-lean==0.2.0  # via -r requirements.in
 sphinxcontrib-qthelp==1.0.3  # via sphinx
 sphinxcontrib-serializinghtml==1.1.4  # via sphinx
 sphinxcontrib-spelling==5.4.0  # via -r requirements.in
+toml==0.10.1              # via -r requirements.in
 urllib3==1.25.10          # via requests
 
 # The following packages are considered to be unsafe in a requirements file:
