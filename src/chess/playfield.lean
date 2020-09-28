@@ -173,7 +173,7 @@ def move_piece : playfield m n ι :=
 λ pos, M (equiv.swap start_square end_square pos)
 
 /--
-Equivalent to to `move_piece`, but useful for `rewrite`ing.
+Equivalent to to `move_piece`, but useful for `rewrite`\ ing.
 -/
 lemma move_piece_def : M.move_piece start_square end_square =
     λ pos, M (equiv.swap start_square end_square pos) := rfl
