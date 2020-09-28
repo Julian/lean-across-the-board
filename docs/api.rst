@@ -43,8 +43,6 @@ the space is not defined other than what the `playfield` provides.
 4. Currently, all pieces are constrained by the definition of a board to be present
 on the playfield. That means no capturing moves and no piece introduction moves are possible.
 
-.. module:: chess.board
-
 
 .. definition:: chess.board
 
@@ -110,7 +108,6 @@ on the playfield. That means no capturing moves and no piece introduction moves 
 ``chess.move``
 --------------
 
-.. module:: chess.move
 
 
 .. definition:: chess.move
@@ -169,7 +166,6 @@ on the playfield. That means no capturing moves and no piece introduction moves 
 
 Chess piece implementation.
 
-.. module:: chess.piece
 
 
 .. definition:: chess.black_bishop
@@ -296,7 +292,6 @@ Preventing duplication of indices is not enforced by the `playfield` itself. How
 any given position can hold at-most-one index on it. The actual chess-like rule constraints
 are in `chess.board`.
 
-.. module:: chess.playfield
 
 
 .. definition:: matrix_to_playfield
@@ -403,7 +398,7 @@ Given a board like:
     ♘ _ ♘
 
 Guarini's problem asks for a sequence of moves that swaps the knights,
-producing:
+producing::
 
     ♘ _ ♘
     _ _ _
@@ -430,7 +425,6 @@ Solution::
            →  ♘ _ ♞  →  _ _ ♞  →  _ _ _  →  _ _ _
               _ _ _     _ _ _     ♞ _ _     ♞ _ ♞
 
-.. module:: guarini
 
 
 .. definition:: ending_position
