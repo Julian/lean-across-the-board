@@ -5,9 +5,6 @@ API Reference
 ``chess.board``
 ---------------
 
-.. module:: chess.board
-
-
 .. definition:: chess.board
 
     A board is axiomatized as a set of indexable (ergo distinguishable) pieces
@@ -72,9 +69,6 @@ API Reference
 ``chess.move``
 --------------
 
-.. module:: chess.move
-
-
 .. definition:: chess.move
 
     A move is a (distinct) start and end square whose start square is
@@ -128,9 +122,6 @@ API Reference
 
 ``chess.piece``
 ---------------
-
-.. module:: chess.piece
-
 
 .. definition:: chess.black_bishop
 
@@ -214,9 +205,6 @@ API Reference
 
 ``chess.playfield``
 -------------------
-
-.. module:: chess.playfield
-
 
 .. definition:: matrix_to_playfield
 
@@ -312,9 +300,6 @@ API Reference
 
 ``guarini``
 -----------
-
-.. module:: guarini
-
 
 .. definition:: ending_position
 

@@ -17,7 +17,7 @@ copyright = "2020, " + author
 # -- General configuration ---------------------------------------------------
 
 primary_domain = "lean"
-default_role = "any"
+# default_role = "any"
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named "sphinx.ext.*") or your custom
