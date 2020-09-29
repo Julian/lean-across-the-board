@@ -8,9 +8,9 @@ Lean Across the Board
   :alt: Build status
   :target: https://github.com/Julian/lean-across-the-board/actions?query=workflow%3ACI
 
-.. |ReadTheDocs| image:: https://readthedocs.org/projects/lean-across-the-board/badge/?version=stable&style=flat
+.. |ReadTheDocs| image:: https://readthedocs.org/projects/lean-across-the-board/badge/?version=latest&style=flat
   :alt: ReadTheDocs status
-  :target: https://lean-across-the-board.readthedocs.io/en/stable/
+  :target: https://lean-across-the-board.readthedocs.io/en/latest/
 
 A fun attempt at learning some more `Lean
 <https://leanprover.github.io/>`_ by implementing some theorems from the
