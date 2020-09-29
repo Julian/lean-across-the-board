@@ -59,7 +59,9 @@ def ending_position : chess.board _ _ _ _ := {
 
 -- Direct solution
 
-def guarini_seq : fin _ → ((fin 3 × fin 3) × (fin 3 × fin 3)) := ![
+def guarini_seq : chess.move.sequence _ _ _ _ _ :=
+{ start_board := starting_position,
+  elements := ![
   ((2, 0), (0, 1)),
   ((2, 2), (1, 0)),
   ((0, 1), (2, 2)),
@@ -75,8 +77,7 @@ def guarini_seq : fin _ → ((fin 3 × fin 3) × (fin 3 × fin 3)) := ![
   ((1, 0), (0, 2)),
   ((0, 1), (2, 2)),
   ((2, 1), (0, 0)),
-  ((1, 2), (2, 0))
-]
+  ((1, 2), (2, 0))] }
 
 /-
 ♞, ♞, ♘, ♘
@@ -93,7 +94,7 @@ none, none, none;
 #eval starting_position.contents
 
 def first_move : chess.move starting_position :=
-let pair := guarini_seq 0 in ⟨pair.fst, pair.snd, dec_trivial, dec_trivial, dec_trivial⟩
+let pair := guarini_seq.elements 0 in ⟨pair.fst, pair.snd, dec_trivial, dec_trivial, dec_trivial⟩
 
 /-
 ♞, ♞, ♘, ♘;
@@ -103,7 +104,7 @@ let pair := guarini_seq 0 in ⟨pair.fst, pair.snd, dec_trivial, dec_trivial, de
 ♘, ＿, ♘
 -/
 
-#eval starting_position
+#eval guarini_seq.start_board
 /-
 ♞, ♞, ♘, ♘;
 
@@ -114,29 +115,10 @@ let pair := guarini_seq 0 in ⟨pair.fst, pair.snd, dec_trivial, dec_trivial, de
 
 #eval first_move.perform_move
 
-/-
-((some 3), none, (some 2);
-none, none, none;
-(some 1), none, (some 0),
-((2, 0), (0, 1)), ((2, 2), (1, 0)), ((0, 1), (2, 2)), ((0, 2), (2, 1)), ((0, 0), (1, 2)), ((1, 2), (2, 0)), ((2, 0), (0, 1)), ((2, 1), (0, 0)), ((0, 0), (1, 2)), ((1, 0), (0, 2)), ((0, 2), (2, 1)), ((2, 2), (1, 0)), ((1, 0), (0, 2)), ((0, 1), (2, 2)), ((2, 1), (0, 0)), ((1, 2), (2, 0)))
--/
+example : guarini_seq.boards 0 ≈ first_move.perform_move := dec_trivial
 
-def guarini_seq.scan_contents : fin _ → playfield _ _ _ :=
-(vector.scanl (λ acc (x : prod _ _), playfield.move_piece acc x.fst x.snd)
-  starting_position.contents (vector.of_fn guarini_seq)).nth
+example : ∀ ix, (guarini_seq.elements ix).fst ≠ (guarini_seq.elements ix).snd := dec_trivial
 
-example : ∀ ix, (guarini_seq ix).fst ≠ (guarini_seq ix).snd := dec_trivial
-
-def guarini_position : chess.board _ _ _ _ :=
-  { contents := guarini_seq.scan_contents (fin.last _),
-    pieces := starting_position.pieces }
-
-example : guarini_position ≈ ending_position := dec_trivial
-
-/-  Pseudo-proof of a direct solution
-lemma starting_position.exists_move_seq ending_position := begin
-  use guarini_seq,
-end
--/
+example : guarini_seq.end_board ≈ ending_position := dec_trivial
 
 -- Graph-equivalence

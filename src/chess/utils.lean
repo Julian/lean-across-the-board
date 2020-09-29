@@ -6,11 +6,30 @@ Helpers that don't currently fit elsewhere...
 
 -/
 
-def vector.scanr {α β : Type*} {n : ℕ} (f : α → β → β) (b : β) (v : vector α n) : vector β n :=
+section scan
+
+variables
+variable {n : ℕ}
+
+def vector.scanr {α β : Type*} (f : α → β → β) (b : β) (v : vector α n) : vector β n :=
 prod.snd ((vector.map_accumr (λ x acc, (f x acc, f x acc)) v b))
 
-def vector.scanl {α β : Type*} {n : ℕ} (f : β → α → β) (b : β) (v : vector α n) : vector β n :=
+def vector.scanl {α β : Type*} (f : β → α → β) (b : β) (v : vector α n) : vector β n :=
 vector.reverse (vector.scanr (λ acc x, f x acc) b (vector.reverse v))
+
+@[elab_as_eliminator] protected lemma vector.scanl.induction_on
+  {α β : Type*} {n : ℕ}
+  {P : β → Prop}
+  (f : β → α → β)
+  (b : β)
+  (v : vector α n)
+  (h_b: P b)
+  (h_ih: ∀ y : β, ∀ x : α, P y → P (f y x)) :
+    ∀ e : fin n, P ((vector.scanl f b v).nth e) := begin
+  sorry,
+end
+
+end scan
 
 -- For `playfield`s, the piece type.
 variables (K : Type*)
