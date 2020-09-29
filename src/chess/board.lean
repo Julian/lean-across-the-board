@@ -3,6 +3,7 @@ import tactic.dec_trivial
 
 import chess.playfield
 import chess.piece
+import chess.utils
 
 
 /-!
@@ -55,32 +56,6 @@ variables (m n : Type*) [fintype n] [decidable_eq n] [fintype m] [decidable_eq m
 variables (ι : Type*) [fintype ι] [decidable_eq ι]
 -- The piece type
 variables (K : Type*)
-
-section wrap
--- TODO: Move this section and definitions out of this file
-variables [has_repr K]
-
-/--
-An auxiliary wrapper for `option K` that allows for overriding the `has_repr` instance
-for `option`, and rather, output just the value in the `some` and a custom provided
-`string` for `none`.
--/
-structure option_wrapper :=
-(val : option K)
-(none_s : string)
-
-instance wrapped_option_repr : has_repr (option_wrapper K) :=
-⟨λ ⟨val, s⟩, (option.map has_repr.repr val).get_or_else s⟩
-
-variables {K}
-/--
-Construct an `option_wrapper` term from a provided `option K` and the `string`
-that will override the `has_repr.repr` for `none`.
--/
-def option_wrap (val : option K) (none_s : string) : option_wrapper K := ⟨val, none_s⟩
-
-end wrap
-
 
 /--
 A board is axiomatized as a set of indexable (ergo distinguishable) pieces
@@ -142,7 +117,7 @@ We override the default `option K` representation by using `option_wrap`,
 and supply an underscore to represent empty positions.
 -/
 def board_repr_contents (b : board (fin m') (fin n') (fin ix) K) : string :=
-playfield.matrix_repr (λ x y, option_wrap (b.reduce ⟨x, y⟩) "\uFF3F")
+playfield.matrix_repr (λ x y, chess.utils.option_wrap (b.reduce ⟨x, y⟩) "\uFF3F")
 
 /--
 A board's representation is just the concatentation of the representations

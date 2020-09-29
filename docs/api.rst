@@ -115,24 +115,6 @@ Implementation notes
     The width of the board.
 
 
-.. definition:: chess.option_wrap
-
-    Construct an ``option_wrapper`` term from a provided ``option K`` and
-    the ``string`` that will override the ``has_repr.repr`` for ``none``.
-
-
-.. definition:: chess.option_wrapper
-
-    An auxiliary wrapper for ``option K`` that allows for overriding the
-    ``has_repr`` instance for ``option``, and rather, output just the value
-    in the ``some`` and a custom provided ``string`` for ``none``.
-
-
-.. definition:: chess.wrapped_option_repr
-
-
-
-
 ``chess.move``
 ==============
 
@@ -473,6 +455,41 @@ Implementation details
 
 
 
+``chess.utils``
+===============
+
+Helpers that don’t currently fit elsewhere…
+
+
+
+.. definition:: chess.utils.option_wrap
+
+    Construct an ``option_wrapper`` term from a provided ``option K`` and
+    the ``string`` that will override the ``has_repr.repr`` for ``none``.
+
+
+.. definition:: chess.utils.option_wrapper
+
+    An auxiliary wrapper for ``option K`` that allows for overriding the
+    ``has_repr`` instance for ``option``, and rather, output just the value
+    in the ``some`` and a custom provided ``string`` for ``none``.
+
+
+.. definition:: chess.utils.wrapped_option_repr
+
+
+
+
+.. definition:: vector.scanl
+
+
+
+
+.. definition:: vector.scanr
+
+
+
+
 ``guarini``
 ===========
 
@@ -546,16 +563,6 @@ Solution:
 
 
 .. definition:: starting_position
-
-
-
-
-.. definition:: vector.scanl
-
-
-
-
-.. definition:: vector.scanr
 
 
 
