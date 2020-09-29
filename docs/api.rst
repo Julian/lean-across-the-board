@@ -6,10 +6,10 @@ API Reference
 ===============
 
 Definitions and theorems about a chess board
-============================================
+--------------------------------------------
 
 Summary
--------
+~~~~~~~
 
 The chess board is a set of indexed ``piece``\ s on a ``playfield``. A
 board is valid, and can only be constructed, if all the pieces are
@@ -17,7 +17,7 @@ present on the board, and no two distinct (by index) pieces share the
 same position on the board.
 
 Main definitions
-----------------
+~~~~~~~~~~~~~~~~
 
 1. The ``board`` itself, which requires an indexed vector of
    ``piece``\ s, and the ``playfield`` which will serve as the where
@@ -30,7 +30,7 @@ Main definitions
    permutation of indices that point to equivalent pieces.
 
 Implementation notes
---------------------
+~~~~~~~~~~~~~~~~~~~~
 
 1. A ``board`` requires finite dimensions for the ``playfield``, finite
    indices, and a finite piece set. Ideally, this should be generizable
@@ -293,10 +293,10 @@ Chess piece implementation.
 ===================
 
 Definitions and theorems about the chess board field
-====================================================
+----------------------------------------------------
 
 Summary
--------
+~~~~~~~
 
 The field on which chess pieces are placed is a 2D plane, where each
 position corresponds to a piece index. This is because we think of
@@ -304,7 +304,7 @@ defining pieces and moves, usually, by indicating which position they
 are at, and which position they are moved to.
 
 Main definitions
-----------------
+~~~~~~~~~~~~~~~~
 
 1. The playfield itself (``playfield``)
 2. Conversion from a ``matrix`` of (possibly) occupied spaces to a
@@ -313,7 +313,7 @@ Main definitions
    using ``move_piece``
 
 Implementation details
-----------------------
+~~~~~~~~~~~~~~~~~~~~~~
 
 1. The ``playfield`` type itself has no requirements to be finite in any
    dimension, or that the indices used are finite. We represent the
