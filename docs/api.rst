@@ -62,6 +62,20 @@ Implementation notes
     pieces which are placed on distinct squares of a ``playfield``.
 
 
+    Fields:
+
+        .. field:: chess.board.pieces
+
+
+        .. field:: chess.board.contents
+
+
+        .. field:: chess.board.contains_pieces
+
+
+        .. field:: chess.board.no_superimposed_pieces
+
+
 .. definition:: chess.board.board_repr
 
     A board’s representation is just the concatentation of the
@@ -125,6 +139,23 @@ Implementation notes
     occupied and whose end square is not.
 
     (Captures are not implemented yet.)
+
+
+    Fields:
+
+        .. field:: chess.move.start_square
+
+
+        .. field:: chess.move.end_square
+
+
+        .. field:: chess.move.diff_squares
+
+
+        .. field:: chess.move.occupied_start
+
+
+        .. field:: chess.move.unoccupied_end
 
 
 .. definition:: chess.move.after_occupied_end
@@ -232,6 +263,14 @@ Chess piece implementation.
 .. definition:: chess.colored_pieces
 
 
+
+
+    Fields:
+
+        .. field:: chess.colored_pieces.piece
+
+
+        .. field:: chess.colored_pieces.color
 
 
 .. definition:: chess.colored_pieces.decidable_eq
@@ -473,6 +512,14 @@ Helpers that don’t currently fit elsewhere…
     An auxiliary wrapper for ``option K`` that allows for overriding the
     ``has_repr`` instance for ``option``, and rather, output just the value
     in the ``some`` and a custom provided ``string`` for ``none``.
+
+
+    Fields:
+
+        .. field:: chess.utils.option_wrapper.val
+
+
+        .. field:: chess.utils.option_wrapper.none_s
 
 
 .. definition:: chess.utils.wrapped_option_repr
