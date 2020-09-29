@@ -64,19 +64,19 @@ Implementation notes
 
     Fields:
 
-        .. field:: chess.board.pieces
+        .. field:: pieces
 
 
-        .. field:: chess.board.contents
+        .. field:: contents
 
 
-        .. field:: chess.board.contains_pieces
+        .. field:: contains_pieces
 
 
-        .. field:: chess.board.no_superimposed_pieces
+        .. field:: no_superimposed_pieces
 
 
-.. definition:: chess.board.board_repr
+.. definition:: board_repr
 
     A board’s representation is just the concatentation of the
     representations of the ``pieces`` and ``contents`` via
@@ -84,7 +84,7 @@ Implementation notes
     newlines inserted for clarity.
 
 
-.. definition:: chess.board.board_repr_contents
+.. definition:: board_repr_contents
 
     A board’s ``contents`` can be represented by reducing the board
     according to the indexed vector at ``pieces``, and placing the pieces on
@@ -93,38 +93,38 @@ Implementation notes
     positions.
 
 
-.. definition:: chess.board.board_repr_instance
+.. definition:: board_repr_instance
 
 
 
 
-.. definition:: chess.board.board_repr_pieces
+.. definition:: board_repr_pieces
 
     A board’s ``pieces`` is a “vector”, so ``vec_repr`` is used to represent
     it.
 
 
-.. definition:: chess.board.has_equiv
+.. definition:: has_equiv
 
 
 
 
-.. definition:: chess.board.has_mem
+.. definition:: has_mem
 
 
 
 
-.. definition:: chess.board.height
+.. definition:: height
 
     The height of the board.
 
 
-.. definition:: chess.board.reduce
+.. definition:: reduce
 
     The state of the board, where pieces of the same type are equivalent
 
 
-.. definition:: chess.board.width
+.. definition:: width
 
     The width of the board.
 
@@ -143,67 +143,67 @@ Implementation notes
 
     Fields:
 
-        .. field:: chess.move.start_square
+        .. field:: start_square
 
 
-        .. field:: chess.move.end_square
+        .. field:: end_square
 
 
-        .. field:: chess.move.diff_squares
+        .. field:: diff_squares
 
 
-        .. field:: chess.move.occupied_start
+        .. field:: occupied_start
 
 
-        .. field:: chess.move.unoccupied_end
+        .. field:: unoccupied_end
 
 
-.. definition:: chess.move.after_occupied_end
+.. definition:: after_occupied_end
 
     End squares are occupied after a move.
 
 
-.. definition:: chess.move.after_unoccupied_start
+.. definition:: after_unoccupied_start
 
     Start squares are unoccupied after a move.
 
 
-.. definition:: chess.move.before_after_same
+.. definition:: before_after_same
 
     Other squares are unchanged after a move.
 
 
-.. definition:: chess.move.before_occupied_start
+.. definition:: before_occupied_start
 
     Start squares are occupied before a move.
 
 
-.. definition:: chess.move.before_unoccupied_end
+.. definition:: before_unoccupied_end
 
     End squares are unoccupied before a move.
 
 
-.. definition:: chess.move.no_superimpose
+.. definition:: no_superimpose
 
     Pieces do not become superimposed after a move.
 
 
-.. definition:: chess.move.perform_move
+.. definition:: perform_move
 
     A valid ``move`` on a ``board`` retains a valid board state.
 
 
-.. definition:: chess.move.piece
+.. definition:: piece
 
     The piece that is being moved.
 
 
-.. definition:: chess.move.retains_pieces
+.. definition:: retains_pieces
 
     Pieces do not disappear after a move.
 
 
-.. definition:: chess.move.start_square_is_some
+.. definition:: start_square_is_some
 
 
 
@@ -267,10 +267,10 @@ Chess piece implementation.
 
     Fields:
 
-        .. field:: chess.colored_pieces.piece
+        .. field:: piece
 
 
-        .. field:: chess.colored_pieces.color
+        .. field:: color
 
 
 .. definition:: chess.colored_pieces.decidable_eq
@@ -501,13 +501,13 @@ Helpers that don’t currently fit elsewhere…
 
 
 
-.. definition:: chess.utils.option_wrap
+.. definition:: option_wrap
 
     Construct an ``option_wrapper`` term from a provided ``option K`` and
     the ``string`` that will override the ``has_repr.repr`` for ``none``.
 
 
-.. definition:: chess.utils.option_wrapper
+.. definition:: option_wrapper
 
     An auxiliary wrapper for ``option K`` that allows for overriding the
     ``has_repr`` instance for ``option``, and rather, output just the value
@@ -516,13 +516,13 @@ Helpers that don’t currently fit elsewhere…
 
     Fields:
 
-        .. field:: chess.utils.option_wrapper.val
+        .. field:: val
 
 
-        .. field:: chess.utils.option_wrapper.none_s
+        .. field:: none_s
 
 
-.. definition:: chess.utils.wrapped_option_repr
+.. definition:: wrapped_option_repr
 
 
 
