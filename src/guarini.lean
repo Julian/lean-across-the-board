@@ -122,8 +122,8 @@ none, none, none;
 -/
 
 def guarini_seq.scan_contents : fin _ → playfield _ _ _ :=
-(vector.scanl (λ acc (x : prod _ _), playfield.move_piece acc x.fst x.snd)
-  starting_position.contents (vector.of_fn guarini_seq)).nth
+((vector.of_fn guarini_seq).scanl (λ acc (x : prod _ _), playfield.move_piece acc x.fst x.snd)
+  starting_position.contents).nth
 
 example : ∀ ix, (guarini_seq ix).fst ≠ (guarini_seq ix).snd := dec_trivial
 
