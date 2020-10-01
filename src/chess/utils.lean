@@ -6,19 +6,11 @@ Helpers that don't currently fit elsewhere...
 
 -/
 
-section scan
+def vector.scanr {α β : Type*} {n : ℕ} (f : α → β → β) (v : vector α n) (b : β) : vector β n :=
+prod.snd ((vector.map_accumr (λ x acc, (f x acc, f x acc)) v b))
 
-variables {α β : Type}
-variable {n : ℕ}
-variable (v : vector α n)
-
-def vector.scanr (f : α → β → β) (b : β) : vector β n :=
-prod.snd ((v.map_accumr (λ x acc, (f x acc, f x acc)) b))
-
-def vector.scanl (f : β → α → β) (b : β) : vector β n :=
-(v.reverse.scanr (λ acc x, f x acc) b).reverse
-
-end scan
+def vector.scanl {α β : Type*} {n : ℕ} (f : β → α → β) (b : β) (v : vector α n) : vector β n :=
+vector.reverse (vector.scanr (λ acc x, f x acc) (vector.reverse v) b)
 
 -- For `playfield`s, the piece type.
 variables (K : Type*)
