@@ -610,6 +610,3 @@ Solution:
 
 
 .. definition:: starting_position
-
-
-
