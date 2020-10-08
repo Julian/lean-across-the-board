@@ -8,7 +8,6 @@ Helpers that don't currently fit elsewhere...
 
 section scan
 
-variables
 variable {n : ℕ}
 variables {α β : Type*}
 variables (f : β → α → β) (b : β)
