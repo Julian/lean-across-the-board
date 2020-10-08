@@ -115,7 +115,9 @@ let pair := guarini_seq.elements 0 in ⟨pair.fst, pair.snd, dec_trivial, dec_tr
 
 #eval first_move.perform_move
 
-example : guarini_seq.boards 0 ≈ first_move.perform_move := dec_trivial
+example : guarini_seq.boards 0 ≈ guarini_seq.start_board := dec_trivial
+
+example : guarini_seq.boards 1 ≈ first_move.perform_move := dec_trivial
 
 example : ∀ ix, (guarini_seq.elements ix).fst ≠ (guarini_seq.elements ix).snd := dec_trivial
 

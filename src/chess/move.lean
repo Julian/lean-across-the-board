@@ -148,12 +148,12 @@ namespace sequence
 variables {m n ι K o}
 variables (s : sequence m n ι K o)
 
-def scan_contents : fin o → playfield m n ι :=
+def scan_contents : fin (o + 1) → playfield m n ι :=
 ((vector.of_fn s.elements).scanl (λ acc (x : prod _ _), playfield.move_piece acc x.fst x.snd)
    s.start_board.contents).nth
 
 /-- Pieces do not disappear after any `move` in a `sequence`. -/
-lemma retains_pieces  (ixₒ : fin o) : ∀ (ixᵢ : ι), ixᵢ ∈ (s.scan_contents ixₒ) :=
+lemma retains_pieces (ixₒ : fin (o + 1)) : ∀ (ixᵢ : ι), ixᵢ ∈ (s.scan_contents ixₒ) :=
 begin
   intro ix,
   apply vector.scanl.induction_on,
@@ -172,7 +172,7 @@ end
 
 /-- Pieces do not become superimposed after any `move` in a `sequence`. -/
 lemma no_superimpose
-    (ixₒ : fin o)
+    (ixₒ : fin (o + 1))
     (pos pos')
     (hne : pos ≠ pos')
     (h : (s.scan_contents ixₒ) pos ≠ __)
@@ -184,18 +184,14 @@ begin
 end
 
 /-- The board which results from applying the first `ix₀ + 1` `move`s in the `sequence`. -/
-def boards (ixₒ: fin o) : board m n ι K :=
+def boards (ixₒ : fin (o + 1)) : board m n ι K :=
 { contents := s.scan_contents ixₒ,
   pieces := s.start_board.pieces,
   contains_pieces := s.retains_pieces ixₒ,
   no_superimposed_pieces := s.no_superimpose ixₒ }
 
 /-- The board which results from applying all `move`s in the `sequence`. -/
-def end_board : board m n ι K :=
-match o, s with
-| 0, s := s.start_board
-| o' + 1, s := s.boards (fin.last o')
-end
+def end_board : board m n ι K := s.boards (fin.last o)
 
 variable {b}
 
