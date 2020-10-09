@@ -90,34 +90,30 @@ begin
       simp only [←this, hn, fin.cast_succ_fin_succ, vector.nth_cons_succ] } }
 end
 
-@[elab_as_eliminator] protected lemma fin.induction_on
-  {n : ℕ}
-  {P : fin (n + 1) → Prop}
-  (i : fin (n + 1))
-  (h0 : P 0)
-  (hs : ∀ i : fin n, P i.cast_succ → P i.succ) : P i :=
+@[elab_as_eliminator] protected lemma fin.induction_on (i : fin (n + 1))
+  {C : fin (n + 1) → Sort*}
+  (h0 : C 0)
+  (hs : ∀ i : fin n, C i.cast_succ → C i.succ) : C i :=
 begin
   obtain ⟨i, hi⟩ := i,
   induction i with i IH,
   { rwa [fin.mk_zero] },
-  { have : fin.succ ⟨i, nat.lt_of_succ_lt_succ hi⟩ = ⟨i.succ, hi⟩ := rfl,
-    rw ←this,
-    apply hs,
-    apply IH }
+  { refine hs ⟨i, nat.lt_of_succ_lt_succ hi⟩ _,
+    exact IH (nat.lt_of_succ_lt hi) }
 end
 
 @[elab_as_eliminator] protected lemma vector.scanl.induction_on
   {α β : Type*} {n : ℕ}
-  {P : β → Prop}
+  {P : β → Sort*}
   (v : vector α n)
   {f : β → α → β}
   {b : β}
-  (h_b: P b)
-  (h_ih: ∀ {y : β} {x : α}, P y → P (f y x))
-  {ix : fin (n + 1)} : P ((vector.scanl f b v).nth ix) :=
+  (h_b : P b)
+  (h_ih : ∀ {y : β} {x : α}, P y → P (f y x))
+  (ix : fin (n + 1)) : P ((vector.scanl f b v).nth ix) :=
 begin
   apply ix.induction_on,
-  { simp only [h_b, fin.mk_zero, vector.nth_zero, vector.scanl_head] },
+  { simpa only [fin.mk_zero, vector.nth_zero, vector.scanl_head] using h_b },
   { intros i h,
     rw [vector.scanl_nth],
     exact h_ih h }
