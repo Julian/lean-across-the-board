@@ -158,8 +158,8 @@ section move_piece
 -- To be able to state whether two positions are equal
 -- we need to be able to make the equality on each of the dimensions `decidable`
 variables [decidable_eq m] [decidable_eq n]
--- Fix a `M : playfield m n ι` to use in definitions and lemmas below
-variables (M : playfield m n ι)
+-- Fix a `pf : playfield m n ι` to use in definitions and lemmas below
+variables (pf : playfield m n ι)
 -- Fix `start_square` and `end_square : m × n` to use in definitions and lemmas below
 variables (start_square end_square : m × n)
 
@@ -170,26 +170,26 @@ swapping the indices at those squares.
 Does not assume anything about occupancy.
 -/
 def move_piece : playfield m n ι :=
-λ pos, M (equiv.swap start_square end_square pos)
+λ pos, pf (equiv.swap start_square end_square pos)
 
 /--
 Equivalent to to `move_piece`, but useful for `rewrite`\ ing.
 -/
-lemma move_piece_def : M.move_piece start_square end_square =
-    λ pos, M (equiv.swap start_square end_square pos) := rfl
+lemma move_piece_def : pf.move_piece start_square end_square =
+    λ pos, pf (equiv.swap start_square end_square pos) := rfl
 
 /--
 Moving an (optional) index that was at `start_square` places it at `end_square`
 -/
 @[simp] lemma move_piece_start :
-M.move_piece start_square end_square start_square = M end_square :=
+pf.move_piece start_square end_square start_square = pf end_square :=
 by simp only [move_piece_def, equiv.swap_apply_left]
 
 /--
 Moving an (optional) index that was at `end_square` places it at `start_square`
 -/
 @[simp] lemma move_piece_end :
-M.move_piece start_square end_square end_square = M start_square :=
+pf.move_piece start_square end_square end_square = pf start_square :=
 by simp only [move_piece_def, equiv.swap_apply_right]
 
 /--
@@ -199,7 +199,7 @@ Moving an (optional) index retains whatever (optional) indices were at other squ
   {start_square end_square other_square : m × n}
   (ne_start : other_square ≠ start_square)
   (ne_end : other_square ≠ end_square) :
-M.move_piece start_square end_square other_square = M other_square :=
+pf.move_piece start_square end_square other_square = pf other_square :=
 by simp only [move_piece_def, equiv.swap_apply_of_ne_of_ne ne_start ne_end]
 
 end move_piece

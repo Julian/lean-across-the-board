@@ -159,8 +159,8 @@ begin
   apply vector.scanl.induction_on,
   { exact s.start_board.contains_pieces ix },
   {
-    intros M squares hM,
-    obtain ⟨pos, h⟩ := hM,
+    intros pf squares h_pf,
+    obtain ⟨pos, h⟩ := h_pf,
     by_cases hs : pos = squares.fst;
     by_cases he : pos = squares.snd,
     { use pos, simp [←hs, ←he, ←h] },
