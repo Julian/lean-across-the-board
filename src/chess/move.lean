@@ -192,6 +192,16 @@ def boards (ixₒ : fin (o + 1)) : board m n ι K :=
 /-- The board which results from applying all `move`s in the `sequence`. -/
 def end_board : board m n ι K := s.boards (fin.last o)
 
+variable {b}
+
+/-- The `ix₀ + 1`'st `move` in the `sequence`. -/
+def moves (ixₒ: fin o) : chess.move b :=
+{ start_square := (s.elements ixₒ).fst,
+  end_square := (s.elements ixₒ).snd,
+  diff_squares := by sorry,
+  occupied_start := by sorry,
+  unoccupied_end := by sorry }
+
 /--
 Any square which is not the `start_square` or `end_square` of any `move`
 in the `sequence` is fixed across all `move`s (i.e. contains the same piece or remains empty).
@@ -212,18 +222,23 @@ begin
                 vector.nth_of_fn, ne.def, not_false_iff] using h },
 end
 
-variable {b}
-
-/-- The `ix₀ + 1`'st `move` in the `sequence`. -/
-def moves (ixₒ: fin o) : chess.move b :=
-{ start_square := (s.elements ixₒ).fst,
-  end_square := (s.elements ixₒ).snd,
-  diff_squares := by sorry,
-  occupied_start := by sorry,
-  unoccupied_end := by sorry }
-
 end sequence
-
 end move
+
+namespace board
+
+variable (b)
+
+/--
+Assert the existence of a `sequence` of length `o` from a `start_board` to a given end board.
+-/
+def has_sequence_len (end_board: board m n ι K) (o : ℕ) :=
+    ∃ (s : chess.move.sequence m n ι K o), b ≈ s.start_board ∧ end_board ≈ s.end_board
+
+/-- Assert the existence of a `sequence` from a `start_board` to a given end board. -/
+def has_sequence_to (end_board: board m n ι K) :=
+    ∃ (o : ℕ), b.has_sequence_len end_board o
+
+end board
 
 end chess
