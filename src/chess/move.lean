@@ -177,8 +177,7 @@ lemma no_superimpose
     (hne : pos ≠ pos')
     (h : (s.scan_contents ixₒ) pos ≠ __)
     (h' : (s.scan_contents ixₒ) pos' ≠ __) :
-    (s.scan_contents ixₒ) pos ≠
-      (s.scan_contents ixₒ) pos' :=
+      (s.scan_contents ixₒ) pos ≠ (s.scan_contents ixₒ) pos' :=
 begin
   sorry,
 end
@@ -192,6 +191,26 @@ def boards (ixₒ : fin (o + 1)) : board m n ι K :=
 
 /-- The board which results from applying all `move`s in the `sequence`. -/
 def end_board : board m n ι K := s.boards (fin.last o)
+
+/--
+Any square which is not the `start_square` or `end_square` of any `move`
+in the `sequence` is fixed across all `move`s (i.e. contains the same piece or remains empty).
+-/
+lemma fixes_unmentioned_squares
+  (ixᵢ : ι)
+  {pos}
+  {h_pos: s.start_board.contents pos = ixᵢ}
+  (h_unmentioned : ∀ ixₒ, pos ≠ (s.elements ixₒ).fst ∧ pos ≠ (s.elements ixₒ).snd) :
+    ∀ ixₒ, (s.boards ixₒ).contents pos = ixᵢ :=
+begin
+  dsimp [boards, scan_contents],
+  intro ix,
+  apply fin.induction_on ix,
+  { simpa only [vector.nth_zero, vector.scanl_head] using h_pos },
+  { intros ix' h,
+    simpa only [vector.scanl_nth, h_unmentioned, playfield.move_piece_diff,
+                vector.nth_of_fn, ne.def, not_false_iff] using h },
+end
 
 variable {b}
 
