@@ -192,15 +192,15 @@ def boards (ixₒ : fin (o + 1)) : board m n ι K :=
 /-- The board which results from applying all `move`s in the `sequence`. -/
 def end_board : board m n ι K := s.boards (fin.last o)
 
-variable {b}
+variables {b s}
 
 /-- The `ix₀ + 1`'st `move` in the `sequence`. -/
 def moves (ixₒ: fin o) : chess.move b :=
 { start_square := (s.elements ixₒ).fst,
   end_square := (s.elements ixₒ).snd,
-  diff_squares := by sorry,
-  occupied_start := by sorry,
-  unoccupied_end := by sorry }
+  diff_squares := s.atrivial_moves ixₒ,
+  occupied_start := sorry,
+  unoccupied_end := sorry }
 
 /--
 Any square which is not the `start_square` or `end_square` of any `move`
