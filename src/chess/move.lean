@@ -158,16 +158,13 @@ begin
   intro ix,
   apply vector.scanl.induction_on,
   { exact s.start_board.contains_pieces ix },
-  {
-    intros pf squares h_pf,
-    obtain ⟨pos, h⟩ := h_pf,
-    by_cases hs : pos = squares.fst;
-    by_cases he : pos = squares.snd,
+  { rintro pf ⟨start_square, end_square⟩ ⟨pos, h⟩,
+    by_cases hs : pos = start_square;
+    by_cases he : pos = end_square,
     { use pos, simp [←hs, ←he, ←h] },
-    { use squares.snd, simp [hs, he, ←h] },
-    { use squares.fst, simp [hs, he, ←h] },
-    { use pos, simp [hs, he, ←h] }
-  }
+    { use end_square, simp [hs, he, ←h] },
+    { use start_square, simp [hs, he, ←h] },
+    { use pos, simp [hs, he, ←h] } }
 end
 
 
