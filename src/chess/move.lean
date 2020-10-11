@@ -158,7 +158,7 @@ begin
   intro ix,
   apply vector.scanl.induction_on,
   { exact s.start_board.contains_pieces ix },
-  { rintro pf ⟨start_square, end_square⟩ ⟨pos, h⟩,
+  { rintro _ ⟨start_square, end_square⟩ ⟨pos, h⟩,
     by_cases hs : pos = start_square;
     by_cases he : pos = end_square,
     { use pos, simp [←hs, ←he, ←h] },
