@@ -108,7 +108,7 @@ variables {n' m' ix : ℕ}
 A board's `pieces` is a "vector", so `vec_repr` is used to represent it.
 -/
 def board_repr_pieces (b : board (fin m') (fin n') (fin ix) K) : string :=
-playfield.vec_repr b.pieces
+chess.utils.vec_repr b.pieces
 
 /--
 A board's `contents` can be represented by reducing the board according to
@@ -117,7 +117,7 @@ We override the default `option K` representation by using `option_wrap`,
 and supply an underscore to represent empty positions.
 -/
 def board_repr_contents (b : board (fin m') (fin n') (fin ix) K) : string :=
-playfield.matrix_repr (λ x y, chess.utils.option_wrap (b.reduce ⟨x, y⟩) "\uFF3F")
+chess.utils.matrix_repr (λ x y, chess.utils.option_wrap (b.reduce ⟨x, y⟩) "\uFF3F")
 
 /--
 A board's representation is just the concatentation of the representations
