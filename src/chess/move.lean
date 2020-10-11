@@ -170,6 +170,7 @@ begin
   }
 end
 
+
 /-- Pieces do not become superimposed after any `move` in a `sequence`. -/
 lemma no_superimpose
     (ixₒ : fin (o + 1))
@@ -179,7 +180,17 @@ lemma no_superimpose
     (h' : (s.scan_contents ixₒ) pos' ≠ __) :
       (s.scan_contents ixₒ) pos ≠ (s.scan_contents ixₒ) pos' :=
 begin
-  sorry,
+  -- FIXME: Somehow just `apply vector.scanl.induction_on` doesn't unify as-is...
+  refine @vector.scanl.induction_on _ (playfield m n ι) _ (λ b, b pos ≠ b pos') _ _ _ _ _ _,
+  {
+    apply s.start_board.no_superimposed_pieces pos pos' hne,
+    { sorry },
+    { sorry },
+  },
+  {
+    intros pf squares hne,
+    sorry
+  },
 end
 
 /-- The board which results from applying the first `ix₀ + 1` `move`s in the `sequence`. -/
