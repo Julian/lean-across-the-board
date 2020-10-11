@@ -1,3 +1,4 @@
+import chess.utils
 import data.matrix.notation
 
 /-!
@@ -116,40 +117,9 @@ variables {m' n' : ℕ}
 -- Require an index to be `repr`esentable to be able to represent a "vector" of it
 variable [has_repr ι]
 
-/--
-For a "vector" `ι^n'` represented by the type `Π n' : ℕ, fin n' → ι`, where
-the `ι` has a `has_repr` instance itself, we can provide a `has_repr` for the "vector".
-This definition is used for displaying rows of the playfield, when it is defined
-via a `matrix`, likely through notation.
-
-TODO: redefine using a fold + intercalate
--/
-def vec_repr : Π {n'}, (fin n' → ι) → string
-| 0       _ := ""
-| 1       v := repr (matrix.vec_head v)
-| (n + 1) v := repr (matrix.vec_head v) ++ ", " ++ vec_repr (matrix.vec_tail v)
-
-instance vec_repr_instance : has_repr (fin n' → ι) := ⟨vec_repr⟩
-
-/--
-For a `matrix` `ι^(m' × n')` where the `ι` has a `has_repr` instance itself,
-we can provide a `has_repr` for the matrix, using `vec_repr` for each of the rows of the matrix.
-This definition is used for displaying the playfield, when it is defined
-via a `matrix`, likely through notation.
-
-TODO: redefine using a fold + intercalate
--/
-def matrix_repr : Π {m' n'}, matrix (fin m') (fin n') ι → string
-| 0       _ _ := ""
-| 1       n v := vec_repr v.vec_head
-| (m + 1) n v := vec_repr v.vec_head ++ ";\n" ++ matrix_repr v.vec_tail
-
-instance matrix_repr_instance :
-  has_repr (matrix (fin n') (fin m') ι) := ⟨matrix_repr⟩
-
 -- A finite `playfield` is just a uncurried `matrix`.
 instance playfield_repr_instance :
-  has_repr (playfield (fin n') (fin m') ι) := ⟨matrix_repr ∘ function.curry⟩
+  has_repr (playfield (fin n') (fin m') ι) := ⟨chess.utils.matrix_repr ∘ function.curry⟩
 
 end repr
 
