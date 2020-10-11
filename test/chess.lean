@@ -33,8 +33,8 @@ def b₁ : chess.board _ _ _ _ :=
     pieces := ![♞],
     contents := PF ![![0 , __], ![__, __], ![__, __]] }
 
-example : chess.board.width b₁ = 2 := rfl
-example : chess.board.height b₁ = 3 := rfl
+example : b₁.width = 2 := rfl
+example : b₁.height = 3 := rfl
 
 example : 0 ∈ b₁.contents := dec_trivial
 example : 0 ∈ b₁ := dec_trivial
