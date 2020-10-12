@@ -17,6 +17,7 @@ they are at, and which position they are moved to.
 1. The playfield itself (`playfield`)
 2. Conversion from a `matrix` of (possibly) occupied spaces to a `playfield`
 3. Moving a piece by switching the indices at two specified positions using `move_piece`
+4. Making a sequence of moves at once using `move_sequence`
 
 ## Implementation details
 
@@ -43,6 +44,10 @@ more chess-like rule constraints.
 Preventing duplication of indices is not enforced by the `playfield` itself. However,
 any given position can hold at-most-one index on it. The actual chess-like rule constraints
 are in `chess.board`.
+
+5. Sequences of moves are implemented on top of `move`s, rather than vice versa (`move`s
+being defined as sequences of length one). This *probably* causes a bit of duplication,
+which may warrant flipping things later.
 
 -/
 
@@ -123,13 +128,14 @@ instance playfield_repr_instance :
 
 end repr
 
-section move_piece
-
 -- To be able to state whether two positions are equal
 -- we need to be able to make the equality on each of the dimensions `decidable`
 variables [decidable_eq m] [decidable_eq n]
 -- Fix a `pf : playfield m n ι` to use in definitions and lemmas below
 variables (pf : playfield m n ι)
+
+section move_piece
+
 -- Fix `start_square` and `end_square : m × n` to use in definitions and lemmas below
 variables (start_square end_square : m × n)
 
@@ -163,7 +169,7 @@ pf.move_piece start_square end_square end_square = pf start_square :=
 by simp only [move_piece_def, equiv.swap_apply_right]
 
 /--
-Moving an (optional) index retains whatever (optional) indices were at other squares.
+Moving an (optional) index retains whatever (optional) indices that were at other squares.
 -/
 @[simp] lemma move_piece_diff
   {start_square end_square other_square : m × n}
@@ -173,6 +179,58 @@ pf.move_piece start_square end_square other_square = pf other_square :=
 by simp only [move_piece_def, equiv.swap_apply_of_ne_of_ne ne_start ne_end]
 
 end move_piece
+
+section move_sequence
+
+-- The length of the sequence
+variables {o : ℕ}
+-- Fix a sequence of start and end squares.
+variables (seq : vector ((m × n) × (m × n)) o)
+
+/-- Make a sequence of `move`s all at once. -/
+def move_sequence : fin (o + 1) → playfield m n ι :=
+(vector.scanl (λ acc (x : prod _ _), move_piece acc x.fst x.snd) pf seq).nth
+
+/--
+Equivalent to to `move_sequence`, but useful for `rewrite`\ ing.
+-/
+lemma move_sequence_def : pf.move_sequence seq =
+  (vector.scanl (λ acc (x : prod _ _), move_piece acc x.fst x.snd) pf seq).nth := rfl
+
+/--
+Throughout a sequence, moving an (optional) index that was at
+`start_square` places it at `end_square`.
+-/
+@[simp] lemma move_sequence_start :
+∀ (e : fin o), ((pf.move_sequence seq) e) (seq.nth e).fst =
+               ((pf.move_sequence seq) e) (seq.nth e).snd := by begin
+  sorry,
+end
+
+/--
+Throughout a sequence, moving an (optional) index retains whatever
+(optional) indices that were at other squares.
+-/
+@[simp] lemma move_sequence_end :
+∀ (e : fin o), ((pf.move_sequence seq) e) (seq.nth e).snd =
+               ((pf.move_sequence seq) e) (seq.nth e).fst := by begin
+  sorry,
+end
+
+/--
+Throughout a sequence, moving an (optional) index that was at
+`start_square` places it at `end_square`.
+-/
+@[simp] lemma move_sequence_diff
+  {start_square end_square other_square : m × n}
+  (ne_start : other_square ≠ start_square)
+  (ne_end : other_square ≠ end_square) :
+∀ (e : fin o), ((pf.move_sequence seq) e) (seq.nth e).fst =
+               ((pf.move_sequence seq) e) (seq.nth e).snd := by begin
+  sorry,
+end
+
+end move_sequence
 
 end playfield
 

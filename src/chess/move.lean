@@ -131,9 +131,15 @@ def perform_move : board m n ι K :=
   contains_pieces := f.retains_pieces,
   no_superimposed_pieces := f.no_superimpose }
 
-variables (m n ι K)
 -- The length of the sequence
-variables (o : ℕ)
+variables {o : ℕ}
+
+def scan_contents
+  (start_board: board m n ι K)
+  (elements : fin o → (m × n) × (m × n)) : fin (o + 1) → playfield m n ι :=
+start_board.contents.move_sequence (vector.of_fn elements)
+
+variables (m n ι K o)
 
 /--
 A move `sequence` represents a sequential set of moves from a starting `board`.
@@ -141,19 +147,24 @@ A move `sequence` represents a sequential set of moves from a starting `board`.
 structure sequence :=
 (start_board : board m n ι K)
 (elements : fin o → (m × n) × (m × n))
-(atrivial_moves : ∀ (e : fin o), (elements e).fst ≠ (elements e).snd . tactic.exact_dec_trivial)
+(all_diff_squares :
+  ∀ (e : fin o),
+    (elements e).fst ≠ (elements e).snd . tactic.exact_dec_trivial)
+(all_occupied_start :
+  ∀ (e : fin o),
+    ((scan_contents start_board elements) e) (elements e).fst ≠ __ . tactic.exact_dec_trivial)
+(all_unoccupied_end :
+  ∀ (e : fin o),
+    ((scan_contents start_board elements) e) (elements e).snd = __ . tactic.exact_dec_trivial)
 
 namespace sequence
 
 variables {m n ι K o}
 variables (s : sequence m n ι K o)
 
-def scan_contents : fin (o + 1) → playfield m n ι :=
-((vector.of_fn s.elements).scanl (λ acc (x : prod _ _), playfield.move_piece acc x.fst x.snd)
-   s.start_board.contents).nth
-
 /-- Pieces do not disappear after any `move` in a `sequence`. -/
-lemma retains_pieces (ixₒ : fin (o + 1)) : ∀ (ixᵢ : ι), ixᵢ ∈ (s.scan_contents ixₒ) :=
+lemma retains_pieces (ixₒ : fin (o + 1)) :
+    ∀ (ixᵢ : ι), ixᵢ ∈ (scan_contents s.start_board s.elements ixₒ) :=
 begin
   intro ix,
   apply vector.scanl.induction_on,
@@ -169,13 +180,11 @@ end
 
 
 /-- Pieces do not become superimposed after any `move` in a `sequence`. -/
-lemma no_superimpose
-    (ixₒ : fin (o + 1))
-    (pos pos')
-    (hne : pos ≠ pos')
-    (h : (s.scan_contents ixₒ) pos ≠ __)
-    (h' : (s.scan_contents ixₒ) pos' ≠ __) :
-      (s.scan_contents ixₒ) pos ≠ (s.scan_contents ixₒ) pos' :=
+lemma no_superimpose (ixₒ : fin (o + 1)) (pos pos') (hne : pos ≠ pos')
+    (h : (scan_contents s.start_board s.elements ixₒ) pos ≠ __)
+    (h' : (scan_contents s.start_board s.elements ixₒ) pos' ≠ __) :
+      (scan_contents s.start_board s.elements ixₒ) pos ≠
+      (scan_contents s.start_board s.elements ixₒ) pos' :=
 begin
   -- FIXME: Somehow just `apply vector.scanl.induction_on` doesn't unify as-is...
   refine @vector.scanl.induction_on _ (playfield m n ι) _ (λ b, b pos ≠ b pos') _ _ _ _ _ _,
@@ -186,13 +195,13 @@ begin
   },
   {
     intros pf squares hne,
-    sorry
+    sorry,
   },
 end
 
 /-- The board which results from applying the first `ix₀ + 1` `move`s in the `sequence`. -/
 def boards (ixₒ : fin (o + 1)) : board m n ι K :=
-{ contents := s.scan_contents ixₒ,
+{ contents := scan_contents s.start_board s.elements ixₒ,
   pieces := s.start_board.pieces,
   contains_pieces := s.retains_pieces ixₒ,
   no_superimposed_pieces := s.no_superimpose ixₒ }
@@ -206,7 +215,7 @@ variables {b s}
 def moves (ixₒ: fin o) : chess.move b :=
 { start_square := (s.elements ixₒ).fst,
   end_square := (s.elements ixₒ).snd,
-  diff_squares := s.atrivial_moves ixₒ,
+  diff_squares := s.all_diff_squares ixₒ,
   occupied_start := sorry,
   unoccupied_end := sorry }
 
@@ -224,10 +233,10 @@ begin
   dsimp [boards, scan_contents],
   intro ix,
   apply fin.induction_on ix,
-  { simpa only [vector.nth_zero, vector.scanl_head] using h_pos },
+  { simpa only [playfield.move_sequence_def, vector.nth_zero, vector.scanl_head] using h_pos },
   { intros ix' h,
     simpa only [vector.scanl_nth, h_unmentioned, playfield.move_piece_diff,
-                vector.nth_of_fn, ne.def, not_false_iff] using h },
+                playfield.move_sequence_def, vector.nth_of_fn, ne.def, not_false_iff] using h },
 end
 
 end sequence
