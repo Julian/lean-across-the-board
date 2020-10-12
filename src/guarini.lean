@@ -123,9 +123,7 @@ example : ∀ ix, (guarini_seq.elements ix).fst ≠ (guarini_seq.elements ix).sn
 
 example : guarini_seq.end_board ≈ ending_position := dec_trivial
 
-lemma guarini : starting_position.has_sequence_to ending_position := begin
-    use [16, guarini_seq],
-    dec_trivial,
-end
+lemma guarini : starting_position.has_sequence_to ending_position :=
+⟨_, guarini_seq, dec_trivial⟩
 
 -- Graph-equivalence
