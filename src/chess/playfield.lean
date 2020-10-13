@@ -199,34 +199,34 @@ lemma move_sequence_def : pf.move_sequence seq =
 
 /--
 Throughout a sequence, moving an (optional) index that was at
-`start_square` places it at `end_square`.
+`start_square` places it at `end_square` on the next board.
 -/
 @[simp] lemma move_sequence_start :
-∀ (e : fin o), ((pf.move_sequence seq) e) (seq.nth e).fst =
+∀ (e : fin o), ((pf.move_sequence seq) e.cast_succ) (seq.nth e).fst =
                ((pf.move_sequence seq) e) (seq.nth e).snd := by begin
-  sorry,
-end
-
-/--
-Throughout a sequence, moving an (optional) index retains whatever
-(optional) indices that were at other squares.
--/
-@[simp] lemma move_sequence_end :
-∀ (e : fin o), ((pf.move_sequence seq) e) (seq.nth e).snd =
-               ((pf.move_sequence seq) e) (seq.nth e).fst := by begin
   sorry,
 end
 
 /--
 Throughout a sequence, moving an (optional) index that was at
-`start_square` places it at `end_square`.
+`end_square` places it at `start_square` on the next board.
+-/
+@[simp] lemma move_sequence_end :
+∀ (e : fin o), ((pf.move_sequence seq) e.cast_succ) (seq.nth e).snd =
+               ((pf.move_sequence seq) e) (seq.nth e).fst := by begin
+  sorry,
+end
+
+/--
+Throughout a sequence, moving an (optional) index retains whatever
+(optional) indices that were at other squares on the next board.
 -/
 @[simp] lemma move_sequence_diff
   {start_square end_square other_square : m × n}
   (ne_start : other_square ≠ start_square)
   (ne_end : other_square ≠ end_square) :
-∀ (e : fin o), ((pf.move_sequence seq) e) (seq.nth e).fst =
-               ((pf.move_sequence seq) e) (seq.nth e).snd := by begin
+∀ (e : fin o), ((pf.move_sequence seq) e.cast_succ) other_square =
+               ((pf.move_sequence seq) e) other_square := by begin
   sorry,
 end
 
