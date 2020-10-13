@@ -157,13 +157,9 @@ For a "vector" `X^n'` represented by the type `Π n' : ℕ, fin n' → X`, where
 the `X` has a `has_repr` instance itself, we can provide a `has_repr` for the "vector".
 This definition is used for displaying rows of the playfield, when it is defined
 via a `matrix`, likely through notation.
-
-TODO: redefine using a fold + intercalate
 -/
-def vec_repr : Π {n'}, (fin n' → X) → string
-| 0       _ := ""
-| 1       v := repr (matrix.vec_head v)
-| (n + 1) v := repr (matrix.vec_head v) ++ ", " ++ vec_repr (matrix.vec_tail v)
+def vec_repr : Π {n' : ℕ}, (fin n' → X) → string :=
+λ _ v, string.intercalate ", " ((vector.of_fn v).to_list.map repr)
 
 instance vec_repr_instance : has_repr (fin n' → X) := ⟨vec_repr⟩
 
@@ -172,13 +168,9 @@ For a `matrix` `X^(m' × n')` where the `X` has a `has_repr` instance itself,
 we can provide a `has_repr` for the matrix, using `vec_repr` for each of the rows of the matrix.
 This definition is used for displaying the playfield, when it is defined
 via a `matrix`, likely through notation.
-
-TODO: redefine using a fold + intercalate
 -/
-def matrix_repr : Π {m' n'}, matrix (fin m') (fin n') X → string
-| 0       _ _ := ""
-| 1       n v := vec_repr v.vec_head
-| (m + 1) n v := vec_repr v.vec_head ++ ";\n" ++ matrix_repr v.vec_tail
+def matrix_repr : Π {m' n'}, matrix (fin m') (fin n') X → string :=
+λ _ _ M, string.intercalate ";\n" ((vector.of_fn M).to_list.map repr)
 
 instance matrix_repr_instance :
   has_repr (matrix (fin n') (fin m') X) := ⟨matrix_repr⟩
