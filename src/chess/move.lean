@@ -151,8 +151,7 @@ begin
   apply vector.scanl.induction_on,
   { exact s.start_board.contains_pieces ixᵢ },
   { rintros pf ⟨start_square, end_square⟩,
-    apply pf.retains_pieces,
-    exact h }
+    apply pf.retains_pieces }
 end
 
 /-- Pieces do not become superimposed after any `move` in a `sequence`. -/
