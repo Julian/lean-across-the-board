@@ -68,24 +68,6 @@ by simp only [option.ne_none_iff_is_some.mp f.occupied_start, before_occupied_st
 def piece : K :=
 (b.pieces (option.get f.start_square_is_some))
 
-/-- Pieces do not disappear after a move. -/
-lemma retains_pieces (ix : ι) :
-    ix ∈ b.contents.move_piece f.start_square f.end_square :=
-begin
-  obtain ⟨pos, h⟩ := b.contains_pieces ix,
-  by_cases hs : pos = f.start_square;
-  by_cases he : pos = f.end_square,
-  { have H := f.diff_squares,
-    rw [←hs, ←he] at H,
-    contradiction },
-  { use f.end_square,
-    simp [hs, he, ←h] },
-  { use f.start_square,
-    simp [hs, he, ←h] },
-  { use pos,
-    simp [hs, he, ←h] }
-end
-
 /-- Pieces do not become superimposed after a move. -/
 lemma no_superimpose (pos pos') (hne : pos ≠ pos')
     (h : b.contents.move_piece f.start_square f.end_square pos ≠ __)
@@ -128,7 +110,7 @@ variables (f)
 def perform_move : board m n ι K :=
 { pieces := b.pieces,
   contents := b.contents.move_piece f.start_square f.end_square,
-  contains_pieces := f.retains_pieces,
+  contains_pieces := λ ix, b.contents.retains_pieces _ _ _ (b.contains_pieces ix),
   no_superimposed_pieces := f.no_superimpose }
 
 -- The length of the sequence
@@ -162,22 +144,16 @@ namespace sequence
 variables {m n ι K o}
 variables (s : sequence m n ι K o)
 
-/-- Pieces do not disappear after any `move` in a `sequence`. -/
-lemma retains_pieces (ixₒ : fin (o + 1)) :
-    ∀ (ixᵢ : ι), ixᵢ ∈ (scan_contents s.start_board s.elements ixₒ) :=
+/-- Pieces do not disappear after any `move_piece` in a `sequence`. -/
+lemma retains_pieces (ixₒ : fin (o + 1)) (ixᵢ : ι) :
+  ixᵢ ∈ (scan_contents s.start_board s.elements ixₒ) :=
 begin
-  intro ix,
   apply vector.scanl.induction_on,
-  { exact s.start_board.contains_pieces ix },
-  { rintro _ ⟨start_square, end_square⟩ ⟨pos, h⟩,
-    by_cases hs : pos = start_square;
-    by_cases he : pos = end_square,
-    { use pos, simp [←hs, ←he, ←h] },
-    { use end_square, simp [hs, he, ←h] },
-    { use start_square, simp [hs, he, ←h] },
-    { use pos, simp [hs, he, ←h] } }
+  { exact s.start_board.contains_pieces ixᵢ },
+  { rintros pf ⟨start_square, end_square⟩,
+    apply pf.retains_pieces,
+    exact h }
 end
-
 
 /-- Pieces do not become superimposed after any `move` in a `sequence`. -/
 lemma no_superimpose (ixₒ : fin (o + 1)) (pos pos') (hne : pos ≠ pos')

@@ -178,6 +178,24 @@ Moving an (optional) index retains whatever (optional) indices that were at othe
 pf.move_piece start_square end_square other_square = pf other_square :=
 by simp only [move_piece_def, equiv.swap_apply_of_ne_of_ne ne_start ne_end]
 
+/-- Pieces do not disappear after a `move_piece`. -/
+lemma retains_pieces (pf : playfield m n ι) (start_square end_square : m × n) (ix : ι)
+  (h_pf : ix ∈ pf) :
+    ix ∈ pf.move_piece start_square end_square :=
+begin
+  obtain ⟨pos, h⟩ := h_pf,
+  by_cases hs : pos = start_square;
+  by_cases he : pos = end_square,
+  { use pos,
+    simp [←hs, ←h, he] },
+  { use end_square,
+    simp [hs, he, ←h] },
+  { use start_square,
+    simp [hs, he, ←h] },
+  { use pos,
+    simp [hs, he, ←h] }
+end
+
 end move_piece
 
 section move_sequence
