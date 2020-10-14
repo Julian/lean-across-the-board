@@ -33,8 +33,8 @@ def b₁ : chess.board _ _ _ _ :=
     pieces := ![♞],
     contents := PF ![![0 , __], ![__, __], ![__, __]] }
 
-example : chess.board.width b₁ = 2 := rfl
-example : chess.board.height b₁ = 3 := rfl
+example : b₁.width = 2 := rfl
+example : b₁.height = 3 := rfl
 
 example : 0 ∈ b₁.contents := dec_trivial
 example : 0 ∈ b₁ := dec_trivial
@@ -58,5 +58,13 @@ def downright : chess.move b₁ := {start_square := (0, 0), end_square := (2, 1)
 
 example : downright.piece = ♞ := rfl
 example : downright.piece ≠ ♚ := dec_trivial
+
+def cycle : chess.move.sequence _ _ _ _ _ := {
+  start_board := b₁,
+  elements := ![
+    (downright.start_square, downright.end_square),
+    (downright.end_square, downright.start_square)
+  ]
+}
 
 end move

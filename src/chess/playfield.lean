@@ -17,6 +17,7 @@ they are at, and which position they are moved to.
 1. The playfield itself (`playfield`)
 2. Conversion from a `matrix` of (possibly) occupied spaces to a `playfield`
 3. Moving a piece by switching the indices at two specified positions using `move_piece`
+4. Making a sequence of moves at once using `move_sequence`
 
 ## Implementation details
 
@@ -43,6 +44,10 @@ more chess-like rule constraints.
 Preventing duplication of indices is not enforced by the `playfield` itself. However,
 any given position can hold at-most-one index on it. The actual chess-like rule constraints
 are in `chess.board`.
+
+5. Sequences of moves are implemented on top of `move`s, rather than vice versa (`move`s
+being defined as sequences of length one). This *probably* causes a bit of duplication,
+which may warrant flipping things later.
 
 -/
 
@@ -110,6 +115,10 @@ See "Implementation details".
 instance : has_mem ι (playfield m n ι) :=
 ⟨λ ix p, ∃ pos, p pos = ix⟩
 
+/-- A `playfield` on which every index that appears, appears only once. -/
+def some_injective (pf : playfield m n ι) : Prop :=
+∀ ⦃a₁ a₂⦄, pf a₁ = pf a₂ → pf a₁ ≠ none → a₁ = a₂
+
 section repr
 
 -- The size of the "vectors" for a `fin n' → ι`, for `has_repr` definitions
@@ -123,13 +132,14 @@ instance playfield_repr_instance :
 
 end repr
 
-section move_piece
-
 -- To be able to state whether two positions are equal
 -- we need to be able to make the equality on each of the dimensions `decidable`
 variables [decidable_eq m] [decidable_eq n]
--- Fix a `M : playfield m n ι` to use in definitions and lemmas below
-variables (M : playfield m n ι)
+-- Fix a `pf : playfield m n ι` to use in definitions and lemmas below
+variables (pf : playfield m n ι)
+
+section move_piece
+
 -- Fix `start_square` and `end_square : m × n` to use in definitions and lemmas below
 variables (start_square end_square : m × n)
 
@@ -140,39 +150,136 @@ swapping the indices at those squares.
 Does not assume anything about occupancy.
 -/
 def move_piece : playfield m n ι :=
-λ pos, M (equiv.swap start_square end_square pos)
+λ pos, pf (equiv.swap start_square end_square pos)
 
 /--
 Equivalent to to `move_piece`, but useful for `rewrite`\ ing.
 -/
-lemma move_piece_def : M.move_piece start_square end_square =
-    λ pos, M (equiv.swap start_square end_square pos) := rfl
+lemma move_piece_def : pf.move_piece start_square end_square =
+    λ pos, pf (equiv.swap start_square end_square pos) := rfl
 
 /--
 Moving an (optional) index that was at `start_square` places it at `end_square`
 -/
 @[simp] lemma move_piece_start :
-M.move_piece start_square end_square start_square = M end_square :=
+pf.move_piece start_square end_square start_square = pf end_square :=
 by simp only [move_piece_def, equiv.swap_apply_left]
 
 /--
 Moving an (optional) index that was at `end_square` places it at `start_square`
 -/
 @[simp] lemma move_piece_end :
-M.move_piece start_square end_square end_square = M start_square :=
+pf.move_piece start_square end_square end_square = pf start_square :=
 by simp only [move_piece_def, equiv.swap_apply_right]
 
 /--
-Moving an (optional) index retains whatever (optional) indices were at other squares.
+Moving an (optional) index retains whatever (optional) indices that were at other squares.
 -/
 @[simp] lemma move_piece_diff
   {start_square end_square other_square : m × n}
   (ne_start : other_square ≠ start_square)
   (ne_end : other_square ≠ end_square) :
-M.move_piece start_square end_square other_square = M other_square :=
+pf.move_piece start_square end_square other_square = pf other_square :=
 by simp only [move_piece_def, equiv.swap_apply_of_ne_of_ne ne_start ne_end]
 
+/-- Pieces do not disappear after a `move_piece`. -/
+lemma retains_pieces (pf : playfield m n ι) (start_square end_square : m × n) (ix : ι)
+  (h_pf : ix ∈ pf) :
+    ix ∈ pf.move_piece start_square end_square :=
+begin
+  obtain ⟨pos, h⟩ := h_pf,
+  by_cases hs : pos = start_square;
+  by_cases he : pos = end_square,
+  { use pos,
+    simp [←hs, ←h, he] },
+  { use end_square,
+    simp [hs, he, ←h] },
+  { use start_square,
+    simp [hs, he, ←h] },
+  { use pos,
+    simp [hs, he, ←h] }
+end
+
+/-- Each index that is present on the playfield and appears only once,
+appears only once after a `move_piece`. -/
+lemma retains_injectivity {pf : playfield m n ι} (h : pf.some_injective)
+  {start_square end_square : m × n} (h_occ : pf start_square ≠ none) :
+  (pf.move_piece start_square end_square).some_injective :=
+begin
+  intros pos pos' h_eq h_some,
+  rcases split_eq pos start_square end_square with rfl|rfl|⟨hS, hE⟩;
+  rcases split_eq pos' start_square end_square with rfl|rfl|⟨hS', hE'⟩,
+  { refl },
+  { simp only [move_piece_start, move_piece_end] at h_eq,
+    exact h h_eq.symm h_occ },
+  { simp only [move_piece_diff _ hS' hE', move_piece_start] at h_eq h_some,
+    have : pos' = end_square := (h h_eq h_some).symm,
+    contradiction },
+  { simp only [move_piece_start, move_piece_end] at h_eq,
+    exact (h h_eq h_occ).symm },
+  { refl },
+  { simp only [move_piece_diff _ hS' hE', move_piece_end] at h_eq h_some,
+    have : pos' = start_square := (h h_eq h_some).symm,
+    contradiction },
+  { simp only [move_piece_diff _ hS hE, move_piece_start] at h_eq h_some,
+    have : pos = end_square := h h_eq h_some,
+    contradiction },
+  { simp only [move_piece_diff _ hS hE, move_piece_end] at h_eq h_some,
+    have : pos = start_square := h h_eq h_some,
+    contradiction },
+  { simp only [move_piece_diff _ hS hE, move_piece_diff _ hS' hE'] at h_eq h_some,
+    exact h h_eq h_some }
+end
+
 end move_piece
+
+section move_sequence
+
+-- The length of the sequence
+variables {o : ℕ}
+-- Fix a sequence of start and end squares.
+variables (seq : vector ((m × n) × (m × n)) o)
+
+/-- Make a sequence of `move`s all at once. -/
+def move_sequence : fin (o + 1) → playfield m n ι :=
+(vector.scanl (λ acc (x : prod _ _), move_piece acc x.fst x.snd) pf seq).nth
+
+/--
+Equivalent to to `move_sequence`, but useful for `rewrite`\ ing.
+-/
+lemma move_sequence_def : pf.move_sequence seq =
+  (vector.scanl (λ acc (x : prod _ _), move_piece acc x.fst x.snd) pf seq).nth := rfl
+
+/--
+Throughout a sequence, moving an (optional) index that was at
+`start_square` places it at `end_square` on the next board.
+-/
+lemma move_sequence_start (e : fin o) :
+((pf.move_sequence seq) e.cast_succ) (seq.nth e).fst = ((pf.move_sequence seq) e.succ) (seq.nth e).snd :=
+by simp only [move_sequence_def, vector.scanl_nth, move_piece_end]
+
+/--
+Throughout a sequence, moving an (optional) index that was at
+`end_square` places it at `start_square` on the next board.
+-/
+lemma move_sequence_end (e : fin o) :
+((pf.move_sequence seq) e.cast_succ) (seq.nth e).snd = ((pf.move_sequence seq) e.succ) (seq.nth e).fst :=
+by simp only [move_sequence_def, vector.scanl_nth, move_piece_start]
+
+/--
+Throughout a sequence, moving an (optional) index retains whatever
+(optional) indices that were at other squares on the next board.
+-/
+@[simp] lemma move_sequence_diff
+  (other_square : m × n)
+  (e : fin o)
+  (ne_start : other_square ≠ (seq.nth e).fst)
+  (ne_end : other_square ≠ (seq.nth e).snd) :
+  ((pf.move_sequence seq) e.cast_succ) other_square = ((pf.move_sequence seq) e.succ) other_square :=
+by simp only [move_sequence_def, vector.scanl_nth, ne_start, ne_end,
+              ne.def, not_false_iff, move_piece_diff]
+
+end move_sequence
 
 end playfield
 

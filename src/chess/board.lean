@@ -99,6 +99,15 @@ instance : has_equiv (board m n ι K) := ⟨λ b b', reduce b = reduce b'⟩
 instance : has_mem ι (board m n ι K) :=
 ⟨λ ix b, ix ∈ b.contents⟩
 
+/- The constraints of a `board` are strong enough to prove that the `playfield` in the
+`contents` is injective on all the indices present. -/
+lemma contents_is_some_injective (b : board m n ι K) : b.contents.some_injective :=
+begin
+  intros pos pos' h_eq h_some,
+  by_contradiction H,
+  exact b.no_superimposed_pieces _ _ H h_some (h_eq ▸ h_some) h_eq,
+end
+
 section repr
 
 variables [has_repr K]
