@@ -4,6 +4,45 @@ import tactic.dec_trivial
 import chess.board
 
 
+/-!
+
+# Definitions and theorems about chess board movements
+
+## Summary
+
+A `move` on a particular `board` is a pair of squares whose start square
+contains a `piece` and whose end square does not.
+
+Moves may be combined into `sequence`s of moves, which encapsulate
+multiple sequential moves all iteratively satisfying the above
+condition.
+
+## Main definitions
+
+1. The `move` itself, which requires specifying the particular `board`
+it will occur on
+
+2. `perform_move`, which yields the `board` whose playfield has the
+start and end squares of a `move` suitably modified
+
+3. A move `sequence`, rooted on a starting board, containing a sequence
+of start and end squares which can be treated as iterated moves.
+
+## Implementation notes
+
+1. `move` and `sequence` are implemented independently of each other.
+`sequence.moves` can be used to extract a `move` from a particular
+index into a `sequence`. `sequence`s are also currently finite, and
+therefore also may automatically infer proofs of move conditions via
+`dec_trivial`.
+
+2. Currently, no legality checks or piece math whatsoever is performed,
+meaning `move`s are not yet programmatically confirmed to be
+legal. Captures are similarly not yet supported.
+
+-/
+
+
 namespace chess
 
 variables {m n : Type}
