@@ -170,7 +170,7 @@ lemma no_superimpose (ixₒ : fin (o + 1)) (pos pos') (hne : pos ≠ pos')
 
 /-- The board which results from applying the first `ix₀ + 1` `move`s in the `sequence`. -/
 def boards (ixₒ : fin (o + 1)) : board m n ι K :=
-{ contents := scan_contents s.start_board s.elements ixₒ,
+{ contents := s.contents_at ixₒ,
   pieces := s.start_board.pieces,
   contains_pieces := s.retains_pieces ixₒ,
   no_superimposed_pieces := s.no_superimpose ixₒ }
@@ -180,13 +180,13 @@ def end_board : board m n ι K := s.boards (fin.last o)
 
 variables {b s}
 
-/-- The `ix₀ + 1`'st `move` in the `sequence`. -/
-def moves (ixₒ: fin o) : chess.move b :=
+/-- The `ix₀`'th `move` in the `sequence`. -/
+def moves (ixₒ: fin o) : chess.move (s.boards ixₒ.cast_succ) :=
 { start_square := (s.elements ixₒ).fst,
   end_square := (s.elements ixₒ).snd,
   diff_squares := s.all_diff_squares ixₒ,
-  occupied_start := sorry,
-  unoccupied_end := sorry }
+  occupied_start := by { simpa only [boards] using s.all_occupied_start _ },
+  unoccupied_end := by { simpa only [boards] using s.all_unoccupied_end _ } }
 
 /--
 Any square which is not the `start_square` or `end_square` of any `move`
@@ -202,10 +202,10 @@ begin
   dsimp [boards, scan_contents],
   intro ix,
   apply fin.induction_on ix,
-  { simpa only [playfield.move_sequence_def, vector.nth_zero, vector.scanl_head] using h_pos },
+  { simpa only [sequence_zero] using h_pos },
   { intros ix' h,
-    simpa only [vector.scanl_nth, h_unmentioned, playfield.move_piece_diff,
-                playfield.move_sequence_def, vector.nth_of_fn, ne.def, not_false_iff] using h },
+    simpa only [sequence_step, move_piece_diff,
+                h_unmentioned, ne.def, not_false_iff] using h },
 end
 
 end sequence
