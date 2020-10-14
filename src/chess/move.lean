@@ -8,9 +8,6 @@ namespace chess
 
 variables {m n : Type}
 
-lemma split_eq (x : m × n) (p p' : m × n) :
-  x = p ∨ x = p' ∨ (x ≠ p ∧ x ≠ p') := by tauto
-
 variables [fintype m] [fintype n] [decidable_eq m] [decidable_eq n]
 variables {ι : Type} [fintype ι] [decidable_eq ι]
 
@@ -71,38 +68,10 @@ def piece : K :=
 /-- Pieces do not become superimposed after a move. -/
 lemma no_superimpose (pos pos') (hne : pos ≠ pos')
     (h : b.contents.move_piece f.start_square f.end_square pos ≠ __)
-    (h' : b.contents.move_piece f.start_square f.end_square pos' ≠ __) :
+    ⦃h' : b.contents.move_piece f.start_square f.end_square pos' ≠ __⦄ :
     b.contents.move_piece f.start_square f.end_square pos ≠
       b.contents.move_piece f.start_square f.end_square pos' :=
-begin
-  rcases split_eq pos f.end_square f.start_square with rfl|rfl|⟨hE, hS⟩;
-  rcases split_eq pos' f.end_square f.start_square with rfl|rfl|⟨hE', hS'⟩,
-  { contradiction }, { exfalso, simpa only [move.after_unoccupied_start] using h' },
-  { have occ' : b.contents pos' ≠ __,
-    { intro H, apply h',
-      simpa only [hS', hE', playfield.move_piece_diff, ne.def, not_false_iff] using H },
-    have H' := b.no_superimposed_pieces pos' f.start_square hS' occ' f.before_occupied_start,
-    simpa only [hS', hE', move.before_after_same, playfield.move_piece_end,
-      ne.def, not_false_iff] using H'.symm },
-  { exfalso, simpa only [move.after_unoccupied_start] using h },
-  { contradiction },
-  { exfalso, simpa only [move.after_unoccupied_start] using h },
-  { have occ : b.contents pos ≠ __,
-      { intro H, apply h,
-        simpa only [hS, hE, playfield.move_piece_diff, ne.def, not_false_iff] using H },
-    have H := b.no_superimposed_pieces pos f.start_square hS occ f.before_occupied_start,
-    simpa only [hS, hE, move.before_after_same, playfield.move_piece_end,
-      ne.def, not_false_iff] using H.symm },
-  { exfalso, simpa only [move.after_unoccupied_start] using h' },
-  { have occ : b.contents pos ≠ __,
-      { intro H, apply h,
-        simpa only [hS, hE, playfield.move_piece_diff, ne.def, not_false_iff] using H },
-    have occ' : b.contents pos' ≠ __,
-      { intro H, apply h',
-        simpa only [hS', hE', playfield.move_piece_diff, ne.def, not_false_iff] using H },
-    have H := b.no_superimposed_pieces pos pos' hne occ occ',
-    simpa only [hS, hE, hS', hE', move.before_after_same, ne.def, not_false_iff] using H }
-end
+λ H, hne (playfield.retains_injectivity (b.contents_is_some_injective) f.before_occupied_start H h)
 
 variables (f)
 
@@ -132,12 +101,12 @@ structure sequence :=
 (all_diff_squares :
   ∀ (e : fin o),
     (elements e).fst ≠ (elements e).snd . tactic.exact_dec_trivial)
-(all_occupied_start :
+(all_occupied_start' :
   ∀ (e : fin o),
-    ((scan_contents start_board elements) e) (elements e).fst ≠ __ . tactic.exact_dec_trivial)
-(all_unoccupied_end :
+    ((scan_contents start_board elements) e.cast_succ) (elements e).fst ≠ __ . tactic.exact_dec_trivial)
+(all_unoccupied_end' :
   ∀ (e : fin o),
-    ((scan_contents start_board elements) e) (elements e).snd = __ . tactic.exact_dec_trivial)
+    ((scan_contents start_board elements) e.cast_succ) (elements e).snd = __ . tactic.exact_dec_trivial)
 
 namespace sequence
 
@@ -151,6 +120,12 @@ def contents_at (ixₒ : fin (o + 1)) : playfield m n ι :=
 /-- Shorthand for referring to the contents at a sequence index `ixₒ : fin (o + 1)`. -/
 lemma contents_at_def (ixₒ : fin (o + 1)) :
   s.contents_at ixₒ = (scan_contents s.start_board s.elements) ixₒ := rfl
+
+lemma all_occupied_start (e : fin o) : (s.contents_at e.cast_succ) (s.elements e).fst ≠ __ :=
+s.all_occupied_start' e
+
+lemma all_unoccupied_end (e : fin o) : (s.contents_at e.cast_succ) (s.elements e).snd = __ :=
+s.all_unoccupied_end' e
 
 open playfield vector
 
@@ -175,25 +150,23 @@ begin
     simpa only [sequence_step] using playfield.retains_pieces _ _ _ _ h },
 end
 
+lemma retains_injectivity (ixₒ : fin (o + 1)) : (s.contents_at ixₒ).some_injective :=
+begin
+  apply fin.induction_on ixₒ,
+  { simpa only [sequence_zero] using s.start_board.contents_is_some_injective },
+  { intros ix h,
+    simp only [sequence_step],
+    apply playfield.retains_injectivity h,
+    exact s.all_occupied_start _ },
+end
+
 /-- Pieces do not become superimposed after any `move` in a `sequence`. -/
 lemma no_superimpose (ixₒ : fin (o + 1)) (pos pos') (hne : pos ≠ pos')
-    (h : (scan_contents s.start_board s.elements ixₒ) pos ≠ __)
-    (h' : (scan_contents s.start_board s.elements ixₒ) pos' ≠ __) :
-      (scan_contents s.start_board s.elements ixₒ) pos ≠
-      (scan_contents s.start_board s.elements ixₒ) pos' :=
-begin
-  -- FIXME: Somehow just `apply vector.scanl.induction_on` doesn't unify as-is...
-  refine @vector.scanl.induction_on _ (playfield m n ι) _ (λ b, b pos ≠ b pos') _ _ _ _ _ _,
-  {
-    apply s.start_board.no_superimposed_pieces pos pos' hne,
-    { sorry },
-    { sorry },
-  },
-  {
-    intros pf squares hne,
-    sorry,
-  },
-end
+    (h : (s.contents_at ixₒ) pos ≠ __)
+    ⦃h' : (s.contents_at ixₒ) pos' ≠ __⦄ :
+      (s.contents_at ixₒ) pos ≠
+      (s.contents_at ixₒ) pos' :=
+λ H, hne (s.retains_injectivity _ H h)
 
 /-- The board which results from applying the first `ix₀ + 1` `move`s in the `sequence`. -/
 def boards (ixₒ : fin (o + 1)) : board m n ι K :=
