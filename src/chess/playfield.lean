@@ -115,6 +115,10 @@ See "Implementation details".
 instance : has_mem ι (playfield m n ι) :=
 ⟨λ ix p, ∃ pos, p pos = ix⟩
 
+/-- A `playfield` on which every index that appears, appears only once. -/
+def some_injective (pf : playfield m n ι) : Prop :=
+∀ ⦃a₁ a₂⦄, pf a₁ = pf a₂ → pf a₁ ≠ none → a₁ = a₂
+
 section repr
 
 -- The size of the "vectors" for a `fin n' → ι`, for `has_repr` definitions
@@ -194,6 +198,37 @@ begin
     simp [hs, he, ←h] },
   { use pos,
     simp [hs, he, ←h] }
+end
+
+/-- Each index that is present on the playfield and appears only once,
+appears only once after a `move_piece`. -/
+lemma retains_injectivity {pf : playfield m n ι} (h : pf.some_injective)
+  {start_square end_square : m × n} (h_occ : pf start_square ≠ none) :
+  (pf.move_piece start_square end_square).some_injective :=
+begin
+  intros pos pos' h_eq h_some,
+  rcases split_eq pos start_square end_square with rfl|rfl|⟨hS, hE⟩;
+  rcases split_eq pos' start_square end_square with rfl|rfl|⟨hS', hE'⟩,
+  { refl },
+  { simp only [move_piece_start, move_piece_end] at h_eq,
+    exact h h_eq.symm h_occ },
+  { simp only [move_piece_diff _ hS' hE', move_piece_start] at h_eq h_some,
+    have : pos' = end_square := (h h_eq h_some).symm,
+    contradiction },
+  { simp only [move_piece_start, move_piece_end] at h_eq,
+    exact (h h_eq h_occ).symm },
+  { refl },
+  { simp only [move_piece_diff _ hS' hE', move_piece_end] at h_eq h_some,
+    have : pos' = start_square := (h h_eq h_some).symm,
+    contradiction },
+  { simp only [move_piece_diff _ hS hE, move_piece_start] at h_eq h_some,
+    have : pos = end_square := h h_eq h_some,
+    contradiction },
+  { simp only [move_piece_diff _ hS hE, move_piece_end] at h_eq h_some,
+    have : pos = start_square := h h_eq h_some,
+    contradiction },
+  { simp only [move_piece_diff _ hS hE, move_piece_diff _ hS' hE'] at h_eq h_some,
+    exact h h_eq h_some }
 end
 
 end move_piece

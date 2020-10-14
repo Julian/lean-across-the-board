@@ -7,6 +7,9 @@ Helpers that don't currently fit elsewhere...
 
 -/
 
+lemma split_eq {m n : Type*} (x : m × n) (p p' : m × n) :
+  p = x ∨ p' = x ∨ (x ≠ p ∧ x ≠ p') := by tauto
+
 section scan
 
 variable {n : ℕ}
