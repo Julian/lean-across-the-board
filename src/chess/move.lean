@@ -144,11 +144,32 @@ namespace sequence
 variables {m n ι K o}
 variables (s : sequence m n ι K o)
 
+/-- Shorthand for referring to the contents at a sequence index `ixₒ : fin (o + 1)`. -/
+def contents_at (ixₒ : fin (o + 1)) : playfield m n ι :=
+(scan_contents s.start_board s.elements) ixₒ
+
+/-- Shorthand for referring to the contents at a sequence index `ixₒ : fin (o + 1)`. -/
+lemma contents_at_def (ixₒ : fin (o + 1)) :
+  s.contents_at ixₒ = (scan_contents s.start_board s.elements) ixₒ := rfl
+
+open playfield vector
+
+/-- The first contents in a `scan_contents` `sequence` is of the `start_board`. -/
+@[simp] lemma sequence_zero : s.contents_at 0 = s.start_board.contents :=
+by simp only [contents_at_def, scan_contents, move_sequence_def, nth_zero, scanl_head]
+
+/-- Any `contents_at` a step in the `sequence` is the result of performing a `move_piece` using
+the `sequence.elements` at that step. -/
+lemma sequence_step (e : fin o) :
+  s.contents_at e.succ =
+    (s.contents_at e.cast_succ).move_piece (s.elements e).fst (s.elements e).snd :=
+by simp only [contents_at_def, scan_contents, move_sequence_def, scanl_nth, nth_of_fn]
+
 /-- Pieces do not disappear after any `move_piece` in a `sequence`. -/
 lemma retains_pieces (ixₒ : fin (o + 1)) (ixᵢ : ι) :
-  ixᵢ ∈ (scan_contents s.start_board s.elements ixₒ) :=
+  ixᵢ ∈ (s.contents_at ixₒ) :=
 begin
-  apply vector.scanl.induction_on,
+  apply scanl.induction_on,
   { exact s.start_board.contains_pieces ixᵢ },
   { rintros pf ⟨start_square, end_square⟩,
     apply pf.retains_pieces }
