@@ -10,6 +10,10 @@ Helpers that don't currently fit elsewhere...
 lemma split_eq {m n : Type*} (x : m × n) (p p' : m × n) :
   p = x ∨ p' = x ∨ (x ≠ p ∧ x ≠ p') := by tauto
 
+/-- A function maps an element of its domain to a single element of its range. -/
+lemma is_function {α β : Type} {a a' : α} (f: α → β) : f a ≠ f a' → a ≠ a' :=
+mt (congr_arg f)
+
 section scan
 
 variable {n : ℕ}

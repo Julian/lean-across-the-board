@@ -94,7 +94,7 @@ none, none, none;
 #eval starting_position.contents
 
 def first_move : chess.move starting_position :=
-let pair := guarini_seq.elements 0 in ⟨pair.fst, pair.snd, dec_trivial, dec_trivial, dec_trivial⟩
+let pair := guarini_seq.elements 0 in ⟨pair.fst, pair.snd, dec_trivial, dec_trivial⟩
 
 /-
 ♞, ♞, ♘, ♘;

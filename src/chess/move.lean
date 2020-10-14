@@ -63,7 +63,6 @@ occupied and whose end square is not.
 structure move :=
 (start_square : m × n)
 (end_square : m × n)
-(diff_squares : start_square ≠ end_square . tactic.exact_dec_trivial)
 (occupied_start : b.contents start_square ≠ __ . tactic.exact_dec_trivial)
 (unoccupied_end : b.contents end_square = __ . tactic.exact_dec_trivial)
 
@@ -95,6 +94,13 @@ by simp only [playfield.move_piece_end, ne.def, not_false_iff, before_occupied_s
     (h : pos ≠ f.start_square) (h' : pos ≠ f.end_square) :
     b.contents.move_piece f.start_square f.end_square pos = b.contents pos :=
 b.contents.move_piece_diff h h'
+
+/-- The start and end squares of a move are distinct. -/
+lemma diff_squares : f.start_square ≠ f.end_square := begin
+  have h_ne : b.contents f.start_square ≠ b.contents f.end_square,
+  { simp only [before_unoccupied_end, ne.def, not_false_iff, before_occupied_start], },
+  { exact (is_function b.contents) h_ne },
+end
 
 lemma start_square_is_some :
   (b.contents f.start_square).is_some :=
@@ -137,9 +143,6 @@ A move `sequence` represents a sequential set of moves from a starting `board`.
 structure sequence :=
 (start_board : board m n ι K)
 (elements : fin o → (m × n) × (m × n))
-(all_diff_squares :
-  ∀ (e : fin o),
-    (elements e).fst ≠ (elements e).snd . tactic.exact_dec_trivial)
 (all_occupied_start' :
   ∀ (e : fin o),
     ((scan_contents start_board elements) e.cast_succ) (elements e).fst ≠ __ . tactic.exact_dec_trivial)
@@ -223,7 +226,6 @@ variables {b s}
 def moves (ixₒ: fin o) : chess.move (s.boards ixₒ.cast_succ) :=
 { start_square := (s.elements ixₒ).fst,
   end_square := (s.elements ixₒ).snd,
-  diff_squares := s.all_diff_squares ixₒ,
   occupied_start := by { simpa only [boards] using s.all_occupied_start _ },
   unoccupied_end := by { simpa only [boards] using s.all_unoccupied_end _ } }
 
