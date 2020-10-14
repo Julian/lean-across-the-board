@@ -80,7 +80,7 @@ def guarini_seq : chess.move.sequence _ _ _ _ _ :=
   ((1, 2), (2, 0))] }
 
 def first_move : chess.move starting_position :=
-let pair := guarini_seq.elements 0 in ⟨pair.fst, pair.snd, dec_trivial, dec_trivial, dec_trivial⟩
+let pair := guarini_seq.elements 0 in ⟨pair.fst, pair.snd, dec_trivial, dec_trivial⟩
 
 example : guarini_seq.boards 0 ≈ guarini_seq.start_board := dec_trivial
 

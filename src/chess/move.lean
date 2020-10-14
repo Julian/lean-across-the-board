@@ -67,7 +67,6 @@ made up of a single occupied position.
 structure move :=
 (start_square : m × n)
 (end_square : m × n)
-(diff_squares : start_square ≠ end_square . tactic.exact_dec_trivial)
 (occupied_start : b.contents.occupied_at start_square . tactic.exact_dec_trivial)
 (unoccupied_end : ¬ b.contents.occupied_at end_square . tactic.exact_dec_trivial)
 
@@ -106,6 +105,23 @@ b.contents.move_piece_diff h h'
     (b.contents.move_piece f.start_square f.end_square).occupied_at pos =
       b.contents.occupied_at pos :=
 by simp only [h, h', ne.def, playfield.move_piece_occupied_diff, not_false_iff]
+
+/-- The start and end squares of a move are distinct. -/
+lemma diff_squares : f.start_square ≠ f.end_square := begin
+  obtain ⟨pos, hpos⟩ := f.occupied_start,
+  have h' := f.unoccupied_end,
+  simp only [playfield.occupied_at_iff, not_exists, auto_param_eq] at h',
+  have h_ne : b.contents f.start_square ≠ b.contents f.end_square,
+  {
+    rw hpos,
+    by_contradiction,
+    push_neg at a,
+    have := h' pos,
+    rw a at this,
+    contradiction,
+  },
+  { exact (is_function b.contents) h_ne },
+end
 
 /-- The piece that is being moved. -/
 def piece : K :=
@@ -165,9 +181,6 @@ No inhabited instance because boards do not have an inhabited instance.
 structure sequence :=
 (start_board : board m n ι K)
 (elements : fin o → (m × n) × (m × n))
-(all_diff_squares :
-  ∀ (e : fin o),
-    (elements e).fst ≠ (elements e).snd . tactic.exact_dec_trivial)
 (all_occupied_start' :
   ∀ (e : fin o),
     ((scan_contents start_board elements) e.cast_succ).occupied_at (elements e).fst . tactic.exact_dec_trivial)
@@ -260,7 +273,6 @@ variables {b s}
 def moves (ixₒ : fin o) : chess.move (s.boards ixₒ.cast_succ) :=
 { start_square := (s.elements ixₒ).fst,
   end_square := (s.elements ixₒ).snd,
-  diff_squares := s.all_diff_squares ixₒ,
   occupied_start := by { simpa only [boards] using s.all_occupied_start _ },
   unoccupied_end := by { simpa only [boards] using s.all_unoccupied_end _ } }
 
