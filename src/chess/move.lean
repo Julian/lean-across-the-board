@@ -169,10 +169,10 @@ by simp only [contents_at_def, scan_contents, move_sequence_def, scanl_nth, nth_
 lemma retains_pieces (ixₒ : fin (o + 1)) (ixᵢ : ι) :
   ixᵢ ∈ (s.contents_at ixₒ) :=
 begin
-  apply scanl.induction_on,
-  { exact s.start_board.contains_pieces ixᵢ },
-  { rintros pf ⟨start_square, end_square⟩,
-    apply pf.retains_pieces }
+  apply fin.induction_on ixₒ,
+  { simpa only [sequence_zero] using s.start_board.contains_pieces ixᵢ },
+  { rintros ix h,
+    simpa only [sequence_step] using playfield.retains_pieces _ _ _ _ h },
 end
 
 /-- Pieces do not become superimposed after any `move` in a `sequence`. -/
