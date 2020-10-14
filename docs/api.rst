@@ -56,27 +56,13 @@ Implementation notes
 
 
 
-.. definition:: chess.board
+.. theorem:: chess.board
 
     A board is axiomatized as a set of indexable (ergo distinguishable)
     pieces which are placed on distinct squares of a ``playfield``.
 
 
-    Fields:
-
-        .. field:: pieces
-
-
-        .. field:: contents
-
-
-        .. field:: contains_pieces
-
-
-        .. field:: no_superimposed_pieces
-
-
-.. definition:: board_repr
+.. theorem:: board_repr
 
     A board’s representation is just the concatentation of the
     representations of the ``pieces`` and ``contents`` via
@@ -84,7 +70,7 @@ Implementation notes
     newlines inserted for clarity.
 
 
-.. definition:: board_repr_contents
+.. theorem:: board_repr_contents
 
     A board’s ``contents`` can be represented by reducing the board
     according to the indexed vector at ``pieces``, and placing the pieces on
@@ -93,38 +79,43 @@ Implementation notes
     positions.
 
 
-.. definition:: board_repr_instance
+.. theorem:: board_repr_instance
 
 
 
 
-.. definition:: board_repr_pieces
+.. theorem:: board_repr_pieces
 
     A board’s ``pieces`` is a “vector”, so ``vec_repr`` is used to represent
     it.
 
 
-.. definition:: has_equiv
+.. theorem:: contents_is_some_injective
 
 
 
 
-.. definition:: has_mem
+.. theorem:: has_equiv
 
 
 
 
-.. definition:: height
+.. theorem:: has_mem
+
+
+
+
+.. theorem:: height
 
     The height of the board.
 
 
-.. definition:: reduce
+.. theorem:: reduce
 
     The state of the board, where pieces of the same type are equivalent
 
 
-.. definition:: width
+.. theorem:: width
 
     The width of the board.
 
@@ -133,7 +124,19 @@ Implementation notes
 ==============
 
 
-.. definition:: chess.move
+.. theorem:: chess.board.has_sequence_len
+
+    Assert the existence of a ``sequence`` of length ``o`` from a
+    ``start_board`` to a given end board.
+
+
+.. theorem:: chess.board.has_sequence_to
+
+    Assert the existence of a ``sequence`` from a ``start_board`` to a given
+    end board.
+
+
+.. theorem:: chess.move
 
     A move is a (distinct) start and end square whose start square is
     occupied and whose end square is not.
@@ -141,74 +144,132 @@ Implementation notes
     (Captures are not implemented yet.)
 
 
-    Fields:
-
-        .. field:: start_square
-
-
-        .. field:: end_square
-
-
-        .. field:: diff_squares
-
-
-        .. field:: occupied_start
-
-
-        .. field:: unoccupied_end
-
-
-.. definition:: after_occupied_end
+.. theorem:: after_occupied_end
 
     End squares are occupied after a move.
 
 
-.. definition:: after_unoccupied_start
+.. theorem:: after_unoccupied_start
 
     Start squares are unoccupied after a move.
 
 
-.. definition:: before_after_same
+.. theorem:: before_after_same
 
     Other squares are unchanged after a move.
 
 
-.. definition:: before_occupied_start
+.. theorem:: before_occupied_start
 
     Start squares are occupied before a move.
 
 
-.. definition:: before_unoccupied_end
+.. theorem:: before_unoccupied_end
 
     End squares are unoccupied before a move.
 
 
-.. definition:: no_superimpose
+.. theorem:: no_superimpose
 
     Pieces do not become superimposed after a move.
 
 
-.. definition:: perform_move
+.. theorem:: perform_move
 
     A valid ``move`` on a ``board`` retains a valid board state.
 
 
-.. definition:: piece
+.. theorem:: piece
 
     The piece that is being moved.
 
 
-.. definition:: retains_pieces
-
-    Pieces do not disappear after a move.
-
-
-.. definition:: start_square_is_some
+.. theorem:: scan_contents
 
 
 
 
-.. definition:: chess.split_eq
+.. theorem:: sequence
+
+    A move ``sequence`` represents a sequential set of moves from a starting
+    ``board``.
+
+
+.. theorem:: sequence.all_occupied_start
+
+
+
+
+.. theorem:: sequence.all_unoccupied_end
+
+
+
+
+.. theorem:: sequence.boards
+
+    The board which results from applying the first ``ix₀ + 1`` ``move``\ s
+    in the ``sequence``.
+
+
+.. theorem:: sequence.contents_at
+
+    Shorthand for referring to the contents at a sequence index
+    ``ixₒ : fin (o + 1)``.
+
+
+.. theorem:: sequence.contents_at_def
+
+    Shorthand for referring to the contents at a sequence index
+    ``ixₒ : fin (o + 1)``.
+
+
+.. theorem:: sequence.end_board
+
+    The board which results from applying all ``move``\ s in the
+    ``sequence``.
+
+
+.. theorem:: sequence.fixes_unmentioned_squares
+
+    Any square which is not the ``start_square`` or ``end_square`` of any
+    ``move`` in the ``sequence`` is fixed across all ``move``\ s
+    (i.e. contains the same piece or remains empty).
+
+
+.. theorem:: sequence.moves
+
+    The ``ix₀``\ ’th ``move`` in the ``sequence``.
+
+
+.. theorem:: sequence.no_superimpose
+
+    Pieces do not become superimposed after any ``move`` in a ``sequence``.
+
+
+.. theorem:: sequence.retains_injectivity
+
+
+
+
+.. theorem:: sequence.retains_pieces
+
+    Pieces do not disappear after any ``move_piece`` in a ``sequence``.
+
+
+.. theorem:: sequence.sequence_step
+
+    Any ``contents_at`` a step in the ``sequence`` is the result of
+    performing a ``move_piece`` using the ``sequence.elements`` at that
+    step.
+
+
+.. theorem:: sequence.sequence_zero
+
+    The first contents in a ``scan_contents`` ``sequence`` is of the
+    ``start_board``.
+
+
+.. theorem:: start_square_is_some
 
 
 
@@ -220,110 +281,102 @@ Chess piece implementation.
 
 
 
-.. definition:: chess.black_bishop
+.. theorem:: chess.black_bishop
 
 
 
 
-.. definition:: chess.black_king
+.. theorem:: chess.black_king
 
 
 
 
-.. definition:: chess.black_knight
+.. theorem:: chess.black_knight
 
 
 
 
-.. definition:: chess.black_pawn
+.. theorem:: chess.black_pawn
 
 
 
 
-.. definition:: chess.black_queen
+.. theorem:: chess.black_queen
 
 
 
 
-.. definition:: chess.black_rook
+.. theorem:: chess.black_rook
 
 
 
 
-.. definition:: chess.color
+.. theorem:: chess.color
 
 
 
 
-.. definition:: chess.color.decidable_eq
+.. theorem:: chess.color.decidable_eq
 
 
 
 
-.. definition:: chess.colored_pieces
+.. theorem:: chess.colored_pieces
 
 
 
 
-    Fields:
+.. theorem:: chess.colored_pieces.decidable_eq
 
-        .. field:: piece
 
 
-        .. field:: color
 
+.. theorem:: chess.has_repr
 
-.. definition:: chess.colored_pieces.decidable_eq
 
 
 
+.. theorem:: chess.piece_repr
 
-.. definition:: chess.has_repr
 
 
 
+.. theorem:: chess.pieces
 
-.. definition:: chess.piece_repr
 
 
 
+.. theorem:: chess.pieces.decidable_eq
 
-.. definition:: chess.pieces
 
 
 
+.. theorem:: chess.white_bishop
 
-.. definition:: chess.pieces.decidable_eq
 
 
 
+.. theorem:: chess.white_king
 
-.. definition:: chess.white_bishop
 
 
 
+.. theorem:: chess.white_knight
 
-.. definition:: chess.white_king
 
 
 
+.. theorem:: chess.white_pawn
 
-.. definition:: chess.white_knight
 
 
 
+.. theorem:: chess.white_queen
 
-.. definition:: chess.white_pawn
 
 
 
-
-.. definition:: chess.white_queen
-
-
-
-
-.. definition:: chess.white_rook
+.. theorem:: chess.white_rook
 
 
 
@@ -350,6 +403,7 @@ Main definitions
    ``playfield``
 3. Moving a piece by switching the indices at two specified positions
    using ``move_piece``
+4. Making a sequence of moves at once using ``move_sequence``
 
 Implementation details
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -384,9 +438,14 @@ Implementation details
    hold at-most-one index on it. The actual chess-like rule constraints
    are in ``chess.board``.
 
+5. Sequences of moves are implemented on top of ``move``\ s, rather than
+   vice versa (``move``\ s being defined as sequences of length one).
+   This *probably* causes a bit of duplication, which may warrant
+   flipping things later.
 
 
-.. definition:: matrix_to_playfield
+
+.. theorem:: matrix_to_playfield
 
     A conversion function to turn a bare ``matrix`` into a ``playfield``. A
     ``matrix`` requires the dimensions to be finite.
@@ -405,14 +464,14 @@ Implementation details
     (0,1) (0,2) (1,0) (1,1) (1,2) (2,0) (2,1) (2,2)
 
 
-.. definition:: playfield
+.. theorem:: playfield
 
     A ``playfield m n ι`` represents a ``matrix (m × n) option ι``, which is
     a model for a ``m × n`` shaped game board where not every square is
     occupied.
 
 
-.. definition:: playfield.has_mem
+.. theorem:: playfield.has_mem
 
     A piece, identified by an index, is on the board, if there is any
     position such that the index at that position is the one we’re inquiring
@@ -421,28 +480,12 @@ Implementation details
     duplicated indices on the playfield. See “Implementation details”.
 
 
-.. definition:: playfield.inhabited
+.. theorem:: playfield.inhabited
 
     A ``playfield`` is by default ``inhabited`` by empty squares everywhere.
 
 
-.. definition:: playfield.matrix_repr
-
-    For a ``matrix`` ``ι^(m' × n')`` where the ``ι`` has a ``has_repr``
-    instance itself, we can provide a ``has_repr`` for the matrix, using
-    ``vec_repr`` for each of the rows of the matrix. This definition is used
-    for displaying the playfield, when it is defined via a ``matrix``,
-    likely through notation.
-
-    TODO: redefine using a fold + intercalate
-
-
-.. definition:: playfield.matrix_repr_instance
-
-
-
-
-.. definition:: playfield.move_piece
+.. theorem:: playfield.move_piece
 
     Move an (optional) index from ``start_square`` to ``end_square`` on a
     ``playfield``, swapping the indices at those squares.
@@ -450,48 +493,76 @@ Implementation details
     Does not assume anything about occupancy.
 
 
-.. definition:: playfield.move_piece_def
+.. theorem:: playfield.move_piece_def
 
     Equivalent to to ``move_piece``, but useful for ``rewrite`` ing.
 
 
-.. definition:: playfield.move_piece_diff
+.. theorem:: playfield.move_piece_diff
 
-    Moving an (optional) index retains whatever (optional) indices were at
-    other squares.
+    Moving an (optional) index retains whatever (optional) indices that were
+    at other squares.
 
 
-.. definition:: playfield.move_piece_end
+.. theorem:: playfield.move_piece_end
 
     Moving an (optional) index that was at ``end_square`` places it at
     ``start_square``
 
 
-.. definition:: playfield.move_piece_start
+.. theorem:: playfield.move_piece_start
 
     Moving an (optional) index that was at ``start_square`` places it at
     ``end_square``
 
 
-.. definition:: playfield.playfield_repr_instance
+.. theorem:: playfield.move_sequence
+
+    Make a sequence of ``move``\ s all at once.
+
+
+.. theorem:: playfield.move_sequence_def
+
+    Equivalent to to ``move_sequence``, but useful for ``rewrite`` ing.
+
+
+.. theorem:: playfield.move_sequence_diff
+
+    Throughout a sequence, moving an (optional) index retains whatever
+    (optional) indices that were at other squares on the next board.
+
+
+.. theorem:: playfield.move_sequence_end
+
+    Throughout a sequence, moving an (optional) index that was at
+    ``end_square`` places it at ``start_square`` on the next board.
+
+
+.. theorem:: playfield.move_sequence_start
+
+    Throughout a sequence, moving an (optional) index that was at
+    ``start_square`` places it at ``end_square`` on the next board.
+
+
+.. theorem:: playfield.playfield_repr_instance
 
 
 
 
-.. definition:: playfield.vec_repr
+.. theorem:: playfield.retains_injectivity
 
-    For a “vector” ``ι^n'`` represented by the type
-    ``Π n' : ℕ, fin n' → ι``, where the ``ι`` has a ``has_repr`` instance
-    itself, we can provide a ``has_repr`` for the “vector”. This definition
-    is used for displaying rows of the playfield, when it is defined via a
-    ``matrix``, likely through notation.
-
-    TODO: redefine using a fold + intercalate
+    Each index that is present on the playfield and appears only once,
+    appears only once after a ``move_piece``.
 
 
-.. definition:: playfield.vec_repr_instance
+.. theorem:: playfield.retains_pieces
+
+    Pieces do not disappear after a ``move_piece``.
 
 
+.. theorem:: playfield.some_injective
+
+    A ``playfield`` on which every index that appears, appears only once.
 
 
 ``chess.utils``
@@ -501,38 +572,138 @@ Helpers that don’t currently fit elsewhere…
 
 
 
-.. definition:: option_wrap
+.. theorem:: matrix_repr
 
-    Construct an ``option_wrapper`` term from a provided ``option K`` and
+    For a ``matrix`` ``X^(m' × n')`` where the ``X`` has a ``has_repr``
+    instance itself, we can provide a ``has_repr`` for the matrix, using
+    ``vec_repr`` for each of the rows of the matrix. This definition is used
+    for displaying the playfield, when it is defined via a ``matrix``,
+    likely through notation.
+
+
+.. theorem:: matrix_repr_instance
+
+
+
+
+.. theorem:: option_wrap
+
+    Construct an ``option_wrapper`` term from a provided ``option X`` and
     the ``string`` that will override the ``has_repr.repr`` for ``none``.
 
 
-.. definition:: option_wrapper
+.. theorem:: option_wrapper
 
-    An auxiliary wrapper for ``option K`` that allows for overriding the
+    An auxiliary wrapper for ``option X`` that allows for overriding the
     ``has_repr`` instance for ``option``, and rather, output just the value
     in the ``some`` and a custom provided ``string`` for ``none``.
 
 
-    Fields:
+.. theorem:: vec_repr
 
-        .. field:: val
-
-
-        .. field:: none_s
-
-
-.. definition:: wrapped_option_repr
+    For a “vector” ``X^n'`` represented by the type
+    ``Π n' : ℕ, fin n' → X``, where the ``X`` has a ``has_repr`` instance
+    itself, we can provide a ``has_repr`` for the “vector”. This definition
+    is used for displaying rows of the playfield, when it is defined via a
+    ``matrix``, likely through notation.
 
 
-
-
-.. definition:: vector.scanl
+.. theorem:: vec_repr_instance
 
 
 
 
-.. definition:: vector.scanr
+.. theorem:: wrapped_option_repr
+
+
+
+
+.. theorem:: fin.induction_on
+
+
+
+
+.. theorem:: split_eq
+
+
+
+
+.. theorem:: vector.last
+
+
+
+
+.. theorem:: vector.last_def
+
+
+
+
+.. theorem:: vector.reverse_nth_zero
+
+
+
+
+.. theorem:: vector.scanl
+
+
+
+
+.. theorem:: vector.scanl.induction_on
+
+
+
+
+.. theorem:: vector.scanl_cons
+
+
+
+
+.. theorem:: vector.scanl_head
+
+
+
+
+.. theorem:: vector.scanl_nil
+
+
+
+
+.. theorem:: vector.scanl_nth
+
+
+
+
+.. theorem:: vector.scanl_singleton
+
+
+
+
+.. theorem:: vector.scanl_val
+
+
+
+
+.. theorem:: vector.singleton_tail
+
+
+
+
+.. theorem:: vector.tail_nil
+
+
+
+
+.. theorem:: vector.to_list_reverse
+
+
+
+
+.. theorem:: vector.to_list_scanl
+
+
+
+
+.. theorem:: vector.to_list_singleton
 
 
 
@@ -584,29 +755,24 @@ Solution:
 
 
 
-.. definition:: ending_position
+.. theorem:: ending_position
 
 
 
 
-.. definition:: first_move
+.. theorem:: first_move
 
 
 
 
-.. definition:: guarini_position
+.. theorem:: guarini
 
 
 
 
-.. definition:: guarini_seq
+.. theorem:: guarini_seq
 
 
 
 
-.. definition:: guarini_seq.scan_contents
-
-
-
-
-.. definition:: starting_position
+.. theorem:: starting_position
