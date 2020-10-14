@@ -209,6 +209,11 @@ Implementation notes
     End squares are unoccupied before a move.
 
 
+.. theorem:: diff_squares
+
+    The start and end squares of a move are distinct.
+
+
 .. theorem:: no_superimpose
 
     Pieces do not become superimposed after a move.
@@ -661,6 +666,12 @@ Helpers that don’t currently fit elsewhere…
 .. theorem:: fin.induction_on
 
 
+
+
+.. theorem:: is_function
+
+    A function maps an element of its domain to a single element of its
+    range.
 
 
 .. theorem:: split_eq
