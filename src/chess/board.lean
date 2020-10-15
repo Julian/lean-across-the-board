@@ -68,17 +68,9 @@ structure board :=
 (contents : playfield m n ι)
 -- All the pieces in `pieces` are on the `contents`
 -- See "Implementation details" for info about `dec_trivial`
-(contains_pieces :
-  ∀ ix : ι, ix ∈ contents . tactic.exact_dec_trivial)
+(contains : function.surjective contents.index_at . tactic.exact_dec_trivial)
 -- Different positions hold different indices
--- TODO: Rename, since indices can't share a position when defined via a `matrix`
--- TODO: Express as a surjectivity constraint when combined with `contains_pieces`
-(no_superimposed_pieces :
-  ∀ (pos pos' : m × n),
-    pos ≠ pos' →
-    contents pos ≠ __ →
-    contents pos' ≠ __ →
-      contents pos ≠ contents pos' . tactic.exact_dec_trivial)
+(injects : contents.some_injective . tactic.exact_dec_trivial)
 
 namespace board
 
@@ -99,14 +91,21 @@ instance : has_equiv (board m n ι K) := ⟨λ b b', reduce b = reduce b'⟩
 instance : has_mem ι (board m n ι K) :=
 ⟨λ ix b, ix ∈ b.contents⟩
 
-/- The constraints of a `board` are strong enough to prove that the `playfield` in the
-`contents` is injective on all the indices present. -/
-lemma contents_is_some_injective (b : board m n ι K) : b.contents.some_injective :=
+lemma retains_pieces (b : board m n ι K) (ix : ι) : ix ∈ b.contents :=
 begin
-  intros pos pos' h_eq h_some,
-  by_contradiction H,
-  exact b.no_superimposed_pieces _ _ H h_some (h_eq ▸ h_some) h_eq,
+  obtain ⟨pos, h⟩ := b.contains ix,
+  rw ←h,
+  exact playfield.index_at_in pos,
 end
+
+lemma no_superimposed (b : board m n ι K) (pos pos' : m × n) (hne : pos ≠ pos')
+  (h : b.contents.occupied_at pos) (h' : b.contents.occupied_at pos') :
+  b.contents pos ≠ b.contents pos' :=
+λ H, hne (b.injects h H)
+
+protected lemma inj_iff (b : board m n ι K) :
+  ∀ {pos pos' : m × n}, b.contents.occupied_at pos → (b.contents pos = b.contents pos' ↔ pos = pos') :=
+λ _ _ H, playfield.inj_iff b.contents b.injects H
 
 section repr
 
@@ -140,6 +139,7 @@ b.board_repr_pieces ++ ";\n\n" ++ b.board_repr_contents
 instance board_repr_instance : has_repr (board (fin m') (fin n') (fin ix) K) := ⟨board_repr⟩
 
 end repr
+
 
 end board
 
