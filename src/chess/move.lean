@@ -30,7 +30,7 @@ of start and end squares which can be treated as iterated moves.
 
 ## Implementation notes
 
-1. `move` and `seqiuence` are implemented independently of each other.
+1. `move` and `sequence` are implemented independently of each other.
 `sequence.moves` can be used to extract a `move` from a particular
 index into a `sequence`. `sequence`s are also currently finite, and
 therefore also may automatically infer proofs of move conditions via
