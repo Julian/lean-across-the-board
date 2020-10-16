@@ -30,7 +30,7 @@ of start and end squares which can be treated as iterated moves.
 
 ## Implementation notes
 
-1. `move` and `sequence` are implemented independently of each other.
+1. `move` and `seqiuence` are implemented independently of each other.
 `sequence.moves` can be used to extract a `move` from a particular
 index into a `sequence`. `sequence`s are also currently finite, and
 therefore also may automatically infer proofs of move conditions via
@@ -58,8 +58,12 @@ variables (b : board m n ι K)
 A move is a (distinct) start and end square whose start square is
 occupied and whose end square is not.
 
+No inhabited instance because the board might be
+made up of a single occupied position.
+
 (Captures are not implemented yet.)
 -/
+@[nolint has_inhabited_instance]
 structure move :=
 (start_square : m × n)
 (end_square : m × n)
@@ -74,210 +78,77 @@ namespace move
 
 /-- Start squares are occupied before a move. -/
 @[simp] lemma before_occupied_start :
-    b.contents f.start_square ≠ __ := f.occupied_start
+    b.contents.occupied_at f.start_square := f.occupied_start
 
 /-- End squares are unoccupied before a move. -/
 @[simp] lemma before_unoccupied_end :
-    b.contents f.end_square = __ := f.unoccupied_end
+    ¬ b.contents.occupied_at f.end_square := f.unoccupied_end
 
 /-- Start squares are unoccupied after a move. -/
 @[simp] lemma after_unoccupied_start :
-    b.contents.move_piece f.start_square f.end_square f.start_square = __ :=
-by simp only [playfield.move_piece_start, before_unoccupied_end]
+    ¬ (b.contents.move_piece f.start_square f.end_square).occupied_at f.start_square :=
+by simp only [playfield.move_piece_occupied_start, before_unoccupied_end, not_false_iff]
 
 /-- End squares are occupied after a move. -/
 @[simp] lemma after_occupied_end :
-    b.contents.move_piece f.start_square f.end_square f.end_square ≠ __ :=
-by simp only [playfield.move_piece_end, ne.def, not_false_iff, before_occupied_start]
+    (b.contents.move_piece f.start_square f.end_square).occupied_at f.end_square :=
+by simp only [before_occupied_start, playfield.move_piece_occupied_end]
 
 /-- Other squares are unchanged after a move. -/
-@[simp] lemma before_after_same (pos : m × n)
+@[simp] lemma before_after_same {pos : m × n}
     (h : pos ≠ f.start_square) (h' : pos ≠ f.end_square) :
     b.contents.move_piece f.start_square f.end_square pos = b.contents pos :=
 b.contents.move_piece_diff h h'
 
-lemma start_square_is_some :
-  (b.contents f.start_square).is_some :=
-by simp only [option.ne_none_iff_is_some.mp f.occupied_start, before_occupied_start]
-
-lemma end_square_is_some_after :
-  (b.contents.move_piece f.start_square f.end_square f.end_square).is_some :=
-by simp only [option.ne_none_iff_is_some.mp f.occupied_start, playfield.move_piece_end]
-
-lemma start_square_is_none_after :
-  (b.contents.move_piece f.start_square f.end_square f.start_square).is_none :=
-by simp only [after_unoccupied_start, bool.coe_sort_tt, option.is_none_none]
-
-lemma end_square_is_none :
-  (b.contents f.end_square).is_none :=
-by simp only [before_unoccupied_end, bool.coe_sort_tt, option.is_none_none]
-
-@[simp] lemma before_after_is_some (pos : m × n)
+/-- Other occupation are unchanged after a move. -/
+@[simp] lemma before_after_same_occupied {pos : m × n}
     (h : pos ≠ f.start_square) (h' : pos ≠ f.end_square) :
-    (b.contents.move_piece f.start_square f.end_square pos).is_some ↔ (b.contents pos).is_some :=
-by simp only [h, h', before_after_same, ne.def, not_false_iff]
+    (b.contents.move_piece f.start_square f.end_square).occupied_at pos =
+      b.contents.occupied_at pos :=
+by simp only [h, h', ne.def, playfield.move_piece_occupied_diff, not_false_iff]
 
 /-- The piece that is being moved. -/
 def piece : K :=
-(b.pieces (option.get f.start_square_is_some))
+(b.pieces (b.contents.index_at ⟨f.start_square, f.occupied_start⟩))
 
 /-- Pieces do not become superimposed after a move. -/
-lemma no_superimpose (pos pos') (hne : pos ≠ pos')
-    (h : b.contents.move_piece f.start_square f.end_square pos ≠ __)
-    ⦃h' : b.contents.move_piece f.start_square f.end_square pos' ≠ __⦄ :
+lemma no_superimposed (pos pos') (hne : pos ≠ pos')
+    (h : (b.contents.move_piece f.start_square f.end_square).occupied_at pos) :
     b.contents.move_piece f.start_square f.end_square pos ≠
       b.contents.move_piece f.start_square f.end_square pos' :=
-λ H, hne (playfield.retains_injectivity b.injects f.before_occupied_start H h)
+λ H, hne (b.contents.retains_injectivity b.injects f.occupied_start h H)
 
 variables (f)
 
+/--
+A `move` retains all indices, ignoring empty squares,
+present on the `board` it operates on.
+-/
 lemma retains_surjectivity :
   function.surjective (b.contents.move_piece f.start_square f.end_square).index_at :=
-begin
-  intro ix,
-  obtain ⟨six', hsi⟩ := b.contents.occupied_has_some.mp f.start_square_is_some,
-  obtain ⟨P, hP⟩ := b.contains ix,
-  have hP' := congr_arg some hP,
-  rw ←hP,
-  simp only [playfield.index_at_some, coe_coe] at hP',
-  rcases split_eq (P : m × n) f.start_square f.end_square with H|H|⟨hS, hE⟩,
-  { use f.end_square,
-    { convert f.end_square_is_some_after },
-    { use f.end_square,
-      split,
-      { simp only [option.some_get] },
-      { intros sq hsq,
-        simp only [option.some_get, playfield.move_piece_def, equiv.swap_apply_right] at hsq,
-        have := f.start_square_is_some,
-        rw [←hsq] at this,
-        rw b.inj_iff this at hsq,
-        rcases split_eq sq f.start_square f.end_square with rfl|rfl|⟨hS', hE'⟩,
-        { simpa only [equiv.swap_apply_left] using hsq.symm},
-        { refl },
-        { simp only [equiv.swap_apply_of_ne_of_ne, hS', hE', ne.def, not_false_iff] at hsq,
-          contradiction } } },
-    { apply option.some.inj,
-      simp only [playfield.index_at_some, playfield.move_piece_end, subtype.coe_mk, coe_coe, H] } },
-  { rw coe_coe at H,
-    exfalso,
-    simpa only [H, f.before_unoccupied_end] using hP' },
-  { rw coe_coe at hS hE,
-    use P,
-    { simpa only [hS, hE, move.before_after_same, ne.def, not_false_iff, coe_coe] using P.val.property },
-    { use P,
-      split,
-      { simp only [option.some_get] },
-      { intros sq hsq,
-        simp only [option.some_get, coe_coe, hS, hE, playfield.move_piece_def,
-                   move.before_after_same, ne.def, not_false_iff] at hsq,
-        have := P.val.property,
-        rw [subtype.val_eq_coe, subtype.val_eq_coe, ←hsq] at this,
-        rw b.inj_iff this at hsq,
-        rcases split_eq sq f.start_square f.end_square with rfl|rfl|⟨hS', hE'⟩,
-        { simpa only [equiv.swap_apply_left] using hsq.symm },
-        { simp only [equiv.swap_apply_right] at this hsq,
-          exact absurd hsq.symm hS },
-        { simpa only [equiv.swap_apply_of_ne_of_ne, hS', hE', ne.def, not_false_iff] using hsq } } },
-    { apply option.some.inj,
-      simp only [hS, hE, playfield.index_at_some, move.before_after_same, ne.def, not_false_iff, subtype.coe_mk, coe_coe] } }
-end
+b.contents.index_at_retains_surjectivity b.contains f.before_occupied_start
 
--- this was my original grueling proof
---   contains := by {
---     unfold function.surjective,
---     intro ix,
---     obtain ⟨ix', hi⟩ := b.contents.occupied_has_some.mp f.start_square_is_some,
---     obtain ⟨P, hP⟩ := b.contains ix,
---     have hP' := congr_arg some hP,
---     simp only [playfield.index_at_some, coe_coe] at hP',
---     by_cases h : (ix = ix'),
---     { use f.end_square,
---       { convert f.end_square_is_some_after },
---       { use f.end_square,
---         split,
---         { simp only [option.some_get]},
---         { intros sq hsq,
---           rcases split_eq sq f.start_square f.end_square with rfl|rfl|⟨hS', hE'⟩,
---           { simp only [option.some_get, playfield.move_piece_end, move.after_unoccupied_start] at hsq,
---             simpa only [move.before_occupied_start] using hsq.symm },
---           { refl },
---           { simp only [hS', hE', option.some_get, move.before_after_same,
---                        playfield.move_piece_end, ne.def, not_false_iff] at hsq,
---             have := f.start_square_is_some,
---             rw [←hsq] at this,
---             rw b.inj_iff this at hsq,
---             contradiction } } },
---       { apply option.some.inj,
---         simp only [playfield.index_at_some, playfield.move_piece_end, subtype.coe_mk, coe_coe],
---         rwa [←h] at hi } },
---     { rcases split_eq (P : m × n) f.start_square f.end_square with H|H|⟨hS, hE⟩,
---       { rw ←hP,
---         exfalso,
---         rw coe_coe at H,
---         apply h,
---         apply option.some.inj,
---         rw [←hi, ←hP],
---         simp only [H, playfield.index_at_some, coe_coe, equiv.swap_apply_right] },
---       { use f.end_square,
---         { convert f.end_square_is_some_after },
---         { use f.end_square,
---           split,
---           { simp only [option.some_get]},
---           { intros sq hsq,
---             rcases split_eq sq f.start_square f.end_square with rfl|rfl|⟨hS', hE'⟩,
---             { simp only [option.some_get, playfield.move_piece_end, move.after_unoccupied_start] at hsq,
---               simpa only [move.before_occupied_start] using hsq.symm },
---             { refl },
---             { simp only [hS', hE', option.some_get, move.before_after_same,
---                         playfield.move_piece_end, ne.def, not_false_iff] at hsq,
---               have := f.start_square_is_some,
---               rw [←hsq] at this,
---               rw b.inj_iff this at hsq,
---               contradiction } } },
---         { exfalso,
---           rw coe_coe at H,
---           have := congr_arg some hP,
---           simpa only [H, playfield.index_at_some, move.before_unoccupied_end, coe_coe] using this} },
---       { rw coe_coe at hS hE,
---         use P,
---         { convert P.val.property,
---           simp only [hS, hE, move.before_after_same, ne.def, not_false_iff, subtype.val_eq_coe, coe_coe] },
---         { use P,
---           split,
---           { simp only [option.some_get] },
---           { intros sq hsq,
---             simp only [hS, hE, option.some_get, move.before_after_same, ne.def, not_false_iff, coe_coe] at hsq,
---             rcases split_eq sq f.start_square f.end_square with rfl|rfl|⟨hS', hE'⟩,
---             { rw move.after_unoccupied_start at hsq,
---               exact absurd P.val.property (option.not_is_some_iff_eq_none.mpr hsq.symm) },
---             { have := congr_arg some hP,
---               simp only [playfield.index_at_some, equiv.swap_apply_right, playfield.move_piece_end, coe_coe] at this hsq,
---               rw [this, hi] at hsq,
---               exact absurd (option.some.inj hsq) (ne.symm h) },
---             { simp only [hS', hE', option.some_get, move.before_after_same,
---                           playfield.move_piece_end, ne.def, not_false_iff] at hsq,
---               have := P.val.property,
---               simp only [subtype.val_eq_coe, ←hsq] at this,
---               rwa ←b.inj_iff this } } },
---         { simp_rw ←hP,
---           apply option.some.inj,
---           simp only [hS, hE, playfield.index_at_some, move.before_after_same, ne.def, not_false_iff, subtype.coe_mk, coe_coe] } } }
---   }
--- }
-
+/-- A `move` retains accesing indices injectively on the `board` it operates on. -/
+lemma retains_injectivity :
+  (b.contents.move_piece f.start_square f.end_square).some_injective :=
+b.contents.retains_injectivity b.injects f.before_occupied_start
 
 /-- A valid `move` on a `board` retains a valid board state. -/
 def perform_move : board m n ι K :=
 { pieces := b.pieces,
   contents := b.contents.move_piece f.start_square f.end_square,
-  contains := retains_surjectivity b f,
-  injects := retains_injectivity b f
-   }
+  contains := f.retains_surjectivity,
+  injects := f.retains_injectivity }
 
 
 -- The length of the sequence
 variables {o : ℕ}
 
+/--
+Define the mapping of `playfield`s after performing successive `move_piece`s
+using the pairs of positions in the provided `elements`,
+starting from the `start_board`.
+-/
 def scan_contents
   (start_board: board m n ι K)
   (elements : fin o → (m × n) × (m × n)) : fin (o + 1) → playfield m n ι :=
@@ -287,7 +158,10 @@ variables (m n ι K o)
 
 /--
 A move `sequence` represents a sequential set of moves from a starting `board`.
+
+No inhabited instance because boards do not have an inhabited instance.
 -/
+@[nolint has_inhabited_instance]
 structure sequence :=
 (start_board : board m n ι K)
 (elements : fin o → (m × n) × (m × n))
@@ -296,10 +170,10 @@ structure sequence :=
     (elements e).fst ≠ (elements e).snd . tactic.exact_dec_trivial)
 (all_occupied_start' :
   ∀ (e : fin o),
-    ((scan_contents start_board elements) e.cast_succ) (elements e).fst ≠ __ . tactic.exact_dec_trivial)
+    ((scan_contents start_board elements) e.cast_succ).occupied_at (elements e).fst . tactic.exact_dec_trivial)
 (all_unoccupied_end' :
   ∀ (e : fin o),
-    ((scan_contents start_board elements) e.cast_succ) (elements e).snd = __ . tactic.exact_dec_trivial)
+    ¬ ((scan_contents start_board elements) e.cast_succ).occupied_at (elements e).snd . tactic.exact_dec_trivial)
 
 namespace sequence
 
@@ -314,10 +188,12 @@ def contents_at (ixₒ : fin (o + 1)) : playfield m n ι :=
 lemma contents_at_def (ixₒ : fin (o + 1)) :
   s.contents_at ixₒ = (scan_contents s.start_board s.elements) ixₒ := rfl
 
-lemma all_occupied_start (e : fin o) : (s.contents_at e.cast_succ) (s.elements e).fst ≠ __ :=
+/-- Every scanned board is occupied at the start square of the upcoming move. -/
+lemma all_occupied_start (e : fin o) : (s.contents_at e.cast_succ).occupied_at (s.elements e).fst :=
 s.all_occupied_start' e
 
-lemma all_unoccupied_end (e : fin o) : (s.contents_at e.cast_succ) (s.elements e).snd = __ :=
+/-- Every scanned board is unoccupied at the end square of the upcoming move. -/
+lemma all_unoccupied_end (e : fin o) : ¬ (s.contents_at e.cast_succ).occupied_at (s.elements e).snd :=
 s.all_unoccupied_end' e
 
 open playfield vector
@@ -333,40 +209,47 @@ lemma sequence_step (e : fin o) :
     (s.contents_at e.cast_succ).move_piece (s.elements e).fst (s.elements e).snd :=
 by simp only [contents_at_def, scan_contents, move_sequence_def, scanl_nth, nth_of_fn]
 
-/-- Pieces do not disappear after any `move_piece` in a `sequence`. -/
-lemma retains_pieces (ixₒ : fin (o + 1)) (ixᵢ : ι) :
-  ixᵢ ∈ (s.contents_at ixₒ) :=
+/-- Every `playfield` in a sequence of moves contains all the indices it can. -/
+lemma retains_surjectivity (ixₒ : fin (o + 1)) :
+  function.surjective (s.contents_at ixₒ).index_at :=
 begin
   apply fin.induction_on ixₒ,
-  { simpa only [sequence_zero] using s.start_board.contains_pieces ixᵢ },
-  { rintros ix h,
-    simpa only [sequence_step] using playfield.retains_pieces _ _ _ _ h },
-end
-
-lemma retains_injectivity (ixₒ : fin (o + 1)) : (s.contents_at ixₒ).some_injective :=
-begin
-  apply fin.induction_on ixₒ,
-  { simpa only [sequence_zero] using s.start_board.contents_is_some_injective },
+  { rw sequence_zero,
+    exact s.start_board.contains },
   { intros ix h,
-    simp only [sequence_step],
-    apply playfield.retains_injectivity h,
+    rw sequence_step,
+    apply playfield.index_at_retains_surjectivity _ h,
     exact s.all_occupied_start _ },
 end
 
+/-- Every `playfield` in a sequence of moves injectively accesses the indices. -/
+lemma retains_injectivity (ixₒ : fin (o + 1)) : (s.contents_at ixₒ).some_injective :=
+begin
+  apply fin.induction_on ixₒ,
+  { simpa only [sequence_zero] using s.start_board.injects },
+  { intros ix h,
+    simp only [sequence_step],
+    apply playfield.retains_injectivity _ h,
+    exact s.all_occupied_start _ },
+end
+
+/-- Pieces do not disappear after any `move_piece` in a `sequence`. -/
+lemma retains_pieces (ixₒ : fin (o + 1)) (ixᵢ : ι) :
+  ixᵢ ∈ (s.contents_at ixₒ) :=
+exists.elim (s.retains_surjectivity ixₒ ixᵢ) (λ pos h, h ▸ playfield.index_at_in pos)
+
 /-- Pieces do not become superimposed after any `move` in a `sequence`. -/
-lemma no_superimpose (ixₒ : fin (o + 1)) (pos pos') (hne : pos ≠ pos')
-    (h : (s.contents_at ixₒ) pos ≠ __)
-    ⦃h' : (s.contents_at ixₒ) pos' ≠ __⦄ :
-      (s.contents_at ixₒ) pos ≠
-      (s.contents_at ixₒ) pos' :=
-λ H, hne (s.retains_injectivity _ H h)
+lemma no_superimposed (ixₒ : fin (o + 1)) (pos pos') (hne : pos ≠ pos')
+    (h : (s.contents_at ixₒ).occupied_at pos) :
+      (s.contents_at ixₒ) pos ≠ (s.contents_at ixₒ) pos' :=
+λ H, hne (s.retains_injectivity _ h H)
 
 /-- The board which results from applying the first `ix₀ + 1` `move`s in the `sequence`. -/
 def boards (ixₒ : fin (o + 1)) : board m n ι K :=
 { contents := s.contents_at ixₒ,
   pieces := s.start_board.pieces,
-  contains_pieces := s.retains_pieces ixₒ,
-  no_superimposed_pieces := s.no_superimpose ixₒ }
+  contains := s.retains_surjectivity ixₒ,
+  injects := s.retains_injectivity ixₒ }
 
 /-- The board which results from applying all `move`s in the `sequence`. -/
 def end_board : board m n ι K := s.boards (fin.last o)
@@ -374,7 +257,7 @@ def end_board : board m n ι K := s.boards (fin.last o)
 variables {b s}
 
 /-- The `ix₀`'th `move` in the `sequence`. -/
-def moves (ixₒ: fin o) : chess.move (s.boards ixₒ.cast_succ) :=
+def moves (ixₒ : fin o) : chess.move (s.boards ixₒ.cast_succ) :=
 { start_square := (s.elements ixₒ).fst,
   end_square := (s.elements ixₒ).snd,
   diff_squares := s.all_diff_squares ixₒ,

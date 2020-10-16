@@ -1,6 +1,6 @@
 import chess.utils
 import data.matrix.notation
-import tactic.apply_fun
+import data.set.finite
 
 /-!
 
@@ -129,15 +129,13 @@ See "Implementation details".
 instance : has_mem ι (playfield m n ι) :=
 ⟨λ ix p, ∃ pos, p pos = some ix⟩
 
-section decidable
+instance playfield_decidable_in [fintype m] [fintype n] [decidable_eq ι]
+  {pf : playfield m n ι} {ix : ι} : decidable (ix ∈ pf) := fintype.decidable_exists_fintype
 
-variables [decidable_eq m] [decidable_eq n]
-variables [fintype ι] [decidable_eq ι]
-
-instance playfield_decidable_in [fintype m] [fintype n] {pf : playfield m n ι} {ix : ι} :
-  decidable (ix ∈ pf) := fintype.decidable_exists_fintype
-
-end decidable
+instance fintype
+  [fintype m] [fintype n] [decidable_eq m] [decidable_eq n]
+  [fintype ι] :
+  fintype (playfield m n ι) := pi.fintype
 
 -- Fix a `pf : playfield m n ι` to use in definitions and lemmas below
 variables (pf : playfield m n ι)
@@ -149,6 +147,13 @@ A wrapper to indicate that there is some `ix : ι` such that
 for a `pf : playfield m n ι`, at `pos : m × n`, `pf pos = some ix`.
 -/
 @[reducible] def occupied_at (pos : m × n) : Prop := ∃ ix, pf pos = some ix
+
+/--
+The predicate that `pf.occupied_at pos` for some pos is decidable
+if the indices `ix : ι` are finite and decidably equal.
+-/
+instance [fintype ι] [decidable_eq ι] : decidable_pred pf.occupied_at :=
+  set.decidable_set_of (λ (a : m × n), ∃ (ix : ι), pf a = some ix)
 
 variable {pf}
 
@@ -176,6 +181,14 @@ begin
 end
 
 /--
+If for some `pf : playfield m n ι`, at `pos : m × n`, `pf pos = some ix`,
+then that is equivalent to `pf.occupied_at pos`.
+-/
+lemma occupied_at_of_some {pos : m × n} {ix : ι} (h : pf pos = some ix) :
+  pf.occupied_at pos :=
+⟨ix, h⟩
+
+/--
 If for some `pf : playfield m n ι`, at `pos : m × n`, `pf pos ≠ none`,
 then that is equivalent to `pf.occupied_at pos`.
 -/
@@ -199,6 +212,15 @@ section injective
 /-- A `playfield` on which every index that appears, appears only once. -/
 def some_injective : Prop :=
 ∀ ⦃a₁⦄, pf.occupied_at a₁ → ∀ ⦃a₂⦄, pf a₁ = pf a₂ → a₁ = a₂
+
+/--
+Explicitly state that the proposition that `pf.some_injective`
+is `decidable`, when the `ι` is itself `decidable_eq`.
+-/
+instance some_injective_decidable
+  [fintype m] [fintype n] [decidable_eq m] [decidable_eq n]
+  [fintype ι] [decidable_eq ι] :
+  decidable (pf.some_injective) := fintype.decidable_forall_fintype
 
 variable (h_inj : pf.some_injective)
 include h_inj
@@ -243,12 +265,29 @@ end injective
 The positions `pos : m × n` for a `pf : playfield m n ι`
 such that there is an index `ix : ι` at `pf pos`.
 In other words, the positions of `pf` that are occupied.
+
+No inhabited instance exists because the type could be empty,
+if all the positions of the playfield are empty.
 -/
+@[nolint has_inhabited_instance]
 def occupied_positions : Type* :=
   {pos : m × n // pf.occupied_at pos}
 
 /-- A `pos : pf.occupied_positions` can be used as a `pos : m × n`. -/
 instance coe_occ_t : has_coe_t pf.occupied_positions (m × n) := ⟨subtype.val⟩
+
+section decidable
+
+variables [fintype m] [fintype n]
+variables [fintype ι] [decidable_eq ι]
+
+/--
+The `occupied_positions` of a `pf : playfield m n ι` are finite
+if the dimensions of the playfield and the indices are finite.
+-/
+instance occupied_fintype : fintype pf.occupied_positions := subtype.fintype pf.occupied_at
+
+end decidable
 
 /-- A `pos : pf.occupied_positions` can be used as a `pos : m × n`. -/
 lemma coe_occ_val {pos : pf.occupied_positions} : (pos : m × n) = pos.val := rfl
@@ -328,6 +367,13 @@ given by `pf.index_at pos` is precisely `pf pos`.
 by simp only [index_at_def, option.some_get, subtype.val_eq_coe]
 
 /--
+For a `pos : pf.occupied_positions`, the wrapped index `ix : ι`
+given by `pf.index_at pos` is precisely `pf pos`, in iff form.
+-/
+@[simp] lemma index_at_iff {ix : ι} : pf pos = some ix ↔ pf.index_at pos = ix :=
+⟨λ h, option.some.inj (h ▸ index_at_some pos), λ h, h ▸ (index_at_some pos).symm⟩
+
+/--
 For a `pos : m × n`, and the hypothesis that `h : pf pos = some ix`,
 the index given by `pf.index_at (occupied_positions.mk _ h)` is precisely `ix`.
 -/
@@ -358,7 +404,7 @@ lemma index_at_exists' : ∃ (pos' : pf.occupied_positions), pf pos' = some (pf.
 The index retrieved via `pf.index_at` is known to be unique in the `pf`,
 given an injectivity condition via `pf.some_injective`.
 -/
-lemma occupied_some_injective' (h_inj : pf.some_injective) :
+lemma occupied_unique_of_injective (h_inj : pf.some_injective) :
   ∃! (pos' : pf.occupied_positions), pf pos' = some (pf.index_at pos) :=
 begin
   refine exists_unique_of_exists_of_unique (index_at_exists' pos) _,
@@ -390,6 +436,39 @@ given an injectivity condition via `pf.some_injective`.
 lemma index_at.injective (h_inj : pf.some_injective) : function.injective pf.index_at :=
 λ p p' h, (index_at_inj h_inj).mp h
 
+/--
+Index retrieval via `pf.index_at` is known to be surjective,
+given an surjectivity condition via `function.surjective pf`.
+-/
+lemma index_at.surjective (h : function.surjective pf) :
+  function.surjective pf.index_at :=
+begin
+  intro ix,
+  obtain ⟨pos, hpos⟩ := h ix,
+  use pos,
+  { exact occupied_at_of_some hpos },
+  { apply option.some.inj,
+    simpa only [index_at_some] },
+end
+
+/--
+Index retrieval via `pf` is known to be surjective,
+given an surjectivity condition via `function.surjective pf.index_at`
+and an unoccupied square somewhere.
+-/
+lemma index_at.implies_surjective (h : function.surjective pf.index_at)
+  {unocc_pos : m × n} (h_unocc : ¬ pf.occupied_at unocc_pos) :
+  function.surjective pf :=
+begin
+  intro ix,
+  cases ix,
+  { use unocc_pos,
+    rwa [←occupied_has_not_none, not_not] at h_unocc },
+  { obtain ⟨pos, hpos⟩ := h ix,
+    use pos,
+    simp only [←hpos, index_at_some] },
+end
+
 end index_at
 
 section pos_from
@@ -397,83 +476,227 @@ section pos_from
 variables (pf)
 variables (ix : ι)
 
-/-- A helper set definition describing all the positions that match an index. -/
-def pos_from_aux : set pf.occupied_positions := {pos | pf.index_at pos = ix}
+/--
+A helper subtype definition describing all the positions that match an index.
 
-/-- A helper set definition describing all the positions that match an index. -/
+No inhabited instance exists because the type could be empty,
+if none of the positions of the playfield have this index.
+-/
+@[nolint has_inhabited_instance]
+def pos_from_aux : Type* := {pos // pf.index_at pos = ix}
+
+instance : has_coe (pf.pos_from_aux ix) pf.occupied_positions := ⟨subtype.val⟩
+
+/-- A helper subtype definition describing all the positions that match an index. -/
 @[simp] lemma pos_from_aux_subtype (pos : pf.pos_from_aux ix) :
   pf.index_at (pos : pf.occupied_positions) = ix := pos.property
 
 /-- A helper set definition describing all the positions that match an index. -/
-@[simp] lemma pos_from_aux_in {pos} : pos ∈ pf.pos_from_aux ix ↔ pf.index_at pos = ix := iff.rfl
+lemma pos_from_auxf_set (pos : pf.pos_from_aux ix) :
+  (pos : pf.occupied_positions) ∈ {pos | pf.index_at pos = ix} := pos.property
 
 /--
-Given an injectivity condition of `pf.some_injective`, the set
+Given an injectivity condition of `pf.some_injective`, the type
 of `pos : pf.occupied_positions` that identify a particular index is a subsingleton.
 -/
-lemma subsingleton_pos (h_inj : pf.some_injective) : (pf.pos_from_aux ix).subsingleton :=
+lemma subsingleton_pos (h_inj : pf.some_injective) : subsingleton (pf.pos_from_aux ix) :=
 begin
-  intros _ hpos _ hpos',
+  refine subsingleton.intro _,
+  intros pos pos',
+  apply subtype.eq,
   rw ←index_at_inj h_inj,
-  simp only [pos_from_aux_in] at hpos hpos',
-  simp only [hpos, hpos']
+  simp only [pos_from_aux_subtype, subtype.val_eq_coe]
 end
 
 /--
-Given a surjectivity condition of `pf.index_at`, the set
+Given a surjectivity condition of `pf.index_at`, the type
 of `pos : pf.occupied_positions` that identify a particular index is a nonempty.
 -/
-lemma nonempty_pos (h : function.surjective pf.index_at) : (pf.pos_from_aux ix).nonempty := h ix
+lemma nonempty_pos (surj : function.surjective pf.index_at) : nonempty (pf.pos_from_aux ix) :=
+nonempty_subtype.mpr (surj ix)
 
-/--
-Given a surjectivity condition of `pf.index_at`, for any `ix : ι`,
-there exists a `pos : pf.occupied_positions' such that `pf.index_at pos = ix`.
--/
-lemma pos_from (h : function.surjective pf.index_at) :
-  ∃ pos : pf.occupied_positions, pf.index_at pos = ix := h ix
+variables [fintype m] [fintype n]
+variables [fintype ι] [decidable_eq ι]
 
-variables (pf)
+/-- A helper finset definition describing all the positions that match an index. -/
+def pos_from_auxf : finset pf.occupied_positions := {pos | pf.index_at pos = ix}.to_finset
 
-/-- For any `ix : ι`, define a set of `pos : m × n' such that `pf pos = some ix`. -/
-def pos_from_aux' : set (m × n) := {pos | pf pos = some ix}
-
-/--
-For a `pf : playfield m n ι`, and `ix : ι`, then there could be `pos : m × n`
-such that `pf pos = some ix`.
--/
-lemma pos_from_aux_subtype' (pos : pf.pos_from_aux' ix) : pf (pos : m × n) = some ix := pos.property
-
-/--
-For a `pf : playfield m n ι`, and `ix : ι`, then there could be `pos : m × n`
-such that `pf pos = some ix`.
--/
-@[simp] lemma pos_from_aux_in' {pos : m × n} : pos ∈ pf.pos_from_aux' ix ↔ pf pos = some ix :=
-iff.rfl
-
-/--
-For a `pf : playfield m n ι`, and `ix : ι`, and an injectivity condition that `pf.some_injective`,
-the set of `pos : m × n` such that `pf pos = some ix` is a subsingleton.
--/
-lemma subsingleton_pos' (h_inj : pf.some_injective) : (pf.pos_from_aux' ix).subsingleton :=
+/-- A helper finset definition describing all the positions that match an index. -/
+lemma pos_from_auxf_finset (pos : pf.pos_from_aux ix) :
+  (pos : pf.occupied_positions) ∈ pf.pos_from_auxf ix :=
 begin
-  intros pos hpos pos' hpos',
-  simp only [pos_from_aux_in'] at hpos hpos',
-  exact pf.injective h_inj hpos hpos'
+  unfold pos_from_auxf,
+  simp only [pos_from_aux_subtype, set.mem_set_of_eq, set.mem_to_finset]
+end
+
+/-- A helper finset definition describing all the positions that match an index. -/
+@[simp] lemma pos_from_auxf_in {pos : pf.occupied_positions} (h : pf.index_at pos = ix) :
+  pos ∈ pf.pos_from_auxf ix :=
+begin
+  unfold pos_from_auxf,
+  simp only [h, set.mem_set_of_eq, set.mem_to_finset]
+end
+
+variables (h_inj : pf.some_injective) (surj : function.surjective pf.index_at)
+include h_inj surj
+
+/--
+Given a surjectivity condition of `pf.index_at`,
+and an injectivity condition of `pf.some_injective`, the type
+of `pos : pf.occupied_positions` that identify a particular index is a unique.
+-/
+lemma unique_pos :
+  ∃! (pos : pf.occupied_positions), pos ∈ pf.pos_from_auxf ix ∧ pf.index_at pos = ix :=
+begin
+  obtain ⟨pos, hpos⟩ := surj ix,
+  use pos,
+  split,
+  { simp only [hpos, and_true, eq_self_iff_true, pos_from_auxf_in] },
+  { intros pos' h',
+    rw ←index_at_inj h_inj,
+    simp only [hpos, h'] }
 end
 
 /--
-For a `pf : playfield m n ι`, and `ix : ι`, and a surjectivity condition on `pf`,
-the set of `pos : m × n` such that `pf pos = some ix` is a nonempty.
+Given a surjectivity condition of `pf.index_at`,
+and an injectivity condition of `pf.some_injective`,
+we can retrieve the `pos : pf.occupied_positions`
+such that `pf.index_at pos = ix`.
 -/
-lemma nonempty_pos' (surj : function.surjective pf) : (pf.pos_from_aux' ix).nonempty := surj ix
+def pos_from' (ix : ι) : pf.occupied_positions :=
+finset.choose (λ pos, pf.index_at pos = ix) (pf.pos_from_auxf ix) (pf.unique_pos ix h_inj surj)
+
+variable {pf}
 
 /--
-For a `pf : playfield m n ι`, and `ix : ι`, and a surjectivity condition on `pf`,
+Given a surjectivity condition of `pf.index_at`,
+and an injectivity condition of `pf.some_injective`,
+we can retrieve the `pos : pf.occupied_positions`
+such that `pf.index_at pos = ix`.
+-/
+lemma pos_from_def' : pf.pos_from' h_inj surj ix =
+  finset.choose (λ pos, pf.index_at pos = ix) (pf.pos_from_auxf ix) (pf.unique_pos ix h_inj surj) :=
+rfl
+
+/--
+Given a surjectivity condition of `pf.index_at`,
+and an injectivity condition of `pf.some_injective`,
+round-tripping to get the `pf.index_at (pf.pos_from' ix _ _)` is exactly `ix`.
+-/
+@[simp] lemma pos_from_index_at' : pf.index_at (pf.pos_from' h_inj surj ix) = ix :=
+by { rw [pos_from_def'], exact finset.choose_property (λ pos, pf.index_at pos = ix) _ _ }
+
+/--
+Given a surjectivity condition of `pf.index_at`,
+and an injectivity condition of `pf.some_injective`,
+round-tripping to get the `pf (pf.pos_from' ix _ _)` is exactly `some ix`,
+which goes through the coercion down to `pos : m × n`.
+-/
+lemma pos_from_at' : pf (pf.pos_from' h_inj surj ix) = some ix :=
+by simp only [index_at_iff, pos_from_index_at']
+
+/--
+Given a surjectivity condition of `pf.index_at`,
+and an injectivity condition of `pf.some_injective`,
+the left inverse of `pf.index_at` is `pf.pos_from'`.
+-/
+lemma pos_from_inv_index_at' : function.left_inverse pf.index_at (pf.pos_from' h_inj surj) :=
+λ ix, pos_from_index_at' ix h_inj surj
+
+/--
+Given a surjectivity condition of `pf.index_at`,
+and an injectivity condition of `pf.some_injective`,
+the right inverse of `pf.index_at` is `pf.pos_from'`.
+-/
+lemma index_at_inv_pos_from' : function.right_inverse pf.index_at (pf.pos_from' h_inj surj) :=
+function.right_inverse_of_injective_of_left_inverse
+  (index_at.injective h_inj)
+  (pos_from_inv_index_at' h_inj surj)
+
+variable (pf)
+
+/--
+Given a surjectivity condition of `pf.index_at`,
+and an injectivity condition of `pf.some_injective`, the type
 there exists a `pos : m × n' such that `pf pos = some ix`.
 -/
-lemma pos_from' (surj : function.surjective pf) : ∃ pos : m × n, pf pos = some ix := surj ix
+def pos_from (ix : ι) : m × n := pf.pos_from' h_inj surj ix
+
+variable {pf}
+
+/--
+Given a surjectivity condition of `pf.index_at`,
+and an injectivity condition of `pf.some_injective`, the type
+there exists a `pos : m × n' such that `pf pos = some ix`.
+-/
+lemma pos_from_def : pf.pos_from h_inj surj ix = pf.pos_from' h_inj surj ix := rfl
+
+/--
+Given a surjectivity condition of `pf.index_at`,
+and an injectivity condition of `pf.some_injective`,
+round-tripping to get the `pf (pf.pos_from ix _ _)` is exactly `some ix`,
+-/
+lemma pos_from_at : pf (pf.pos_from h_inj surj ix) = some ix :=
+by simp only [pos_from_def, index_at_iff, pos_from_index_at']
+
+/--
+Given a surjectivity condition of `pf.index_at`,
+and an injectivity condition of `pf.some_injective`,
+the position retrieved via `pf.pos_from` means that
+the `pf` is `occupied_at` it.
+-/
+lemma pos_from_occupied : pf.occupied_at (pf.pos_from h_inj surj ix) :=
+⟨ix, pos_from_at _ _ _⟩
+
+/--
+Given a surjectivity condition of `pf.index_at`,
+and an injectivity condition of `pf.some_injective`,
+the partial inverse of `pf.pos_from` is `pf` itself.
+-/
+lemma pos_from_inv : function.is_partial_inv (pf.pos_from h_inj surj) pf :=
+begin
+  intros ix pos,
+  split,
+  { intro h,
+    apply h_inj,
+    { exact pos_from_occupied _ _ _ },
+    { rw h,
+      exact pos_from_at ix _ _ } },
+  { intro h,
+    rw ←h,
+    exact pos_from_at ix _ _ }
+end
+
+/--
+Given a surjectivity condition of `pf.index_at`,
+and an injectivity condition of `pf.some_injective`,
+the function `pf.pos_from` is injective.
+-/
+lemma pos_from.injective : function.injective (pf.pos_from h_inj surj) :=
+function.injective_of_partial_inv (pos_from_inv h_inj surj)
 
 end pos_from
+
+section equiv
+
+variables [fintype m] [fintype n]
+variables [fintype ι] [decidable_eq ι]
+variables (h_inj : pf.some_injective) (surj : function.surjective pf.index_at)
+include h_inj surj
+
+/--
+Given a surjectivity condition of `pf.index_at`,
+and an injectivity condition of `pf.some_injective`,
+there is an explicit equivalence from the indices `ι` to
+the type of positions in `pf.occupied_positions`.
+-/
+def index_equiv : ι ≃ pf.occupied_positions :=
+{ to_fun := pf.pos_from' h_inj surj,
+  inv_fun := pf.index_at,
+  left_inv := pos_from_inv_index_at' h_inj surj,
+  right_inv := index_at_inv_pos_from' h_inj surj}
+
+end equiv
 
 -- To be able to state whether two positions are equal
 -- we need to be able to make the equality on each of the dimensions `decidable`
@@ -569,9 +792,11 @@ begin
     simp [hs, he, ←h] }
 end
 
-/-- Each index that is present on the playfield and appears only once,
-appears only once after a `move_piece`. -/
-lemma retains_injectivity {pf : playfield m n ι} (h : pf.some_injective)
+/--
+Each index that is present on the playfield and appears only once,
+appears only once after a `move_piece`.
+-/
+lemma retains_injectivity (pf : playfield m n ι) (h : pf.some_injective)
   {start_square end_square : m × n} (h_occ : pf.occupied_at start_square) :
   (pf.move_piece start_square end_square).some_injective :=
 begin
@@ -603,6 +828,54 @@ begin
   { simp only [move_piece_diff, hS, hE, hS', hE',
                move_piece_occupied_diff, ne.def, not_false_iff] at h_eq h_some,
     exact h h_some h_eq }
+end
+
+/--
+If every index and the empty square is present in the `pf : playfield m n ι`,
+as given by a `function.surjective pf` proposition, then each index
+is present on the playfield after a `move_piece`.
+-/
+lemma retains_surjectivity (pf : playfield m n ι) (h : function.surjective pf)
+  {start_square end_square : m × n} (h_occ : pf.occupied_at start_square) :
+  function.surjective (pf.move_piece start_square end_square) :=
+begin
+  intro ix,
+  obtain ⟨six', hsi⟩ := h_occ,
+  obtain ⟨P, hP⟩ := h ix,
+  rw ←hP,
+  rcases split_eq (P : m × n) start_square end_square with H|H|⟨hS, hE⟩,
+  { use end_square,
+    simp only [move_piece_end, H] },
+  { use start_square,
+    simp only [H, move_piece_start] },
+  { use P,
+    simp only [hS, hE, ne.def, not_false_iff, move_piece_diff] }
+end
+
+/--
+If every index and the empty square is present in the `pf : playfield m n ι`,
+as given by a `function.surjective pf` proposition, then each index
+is present on the playfield after a `move_piece`.
+-/
+lemma index_at_retains_surjectivity (pf : playfield m n ι) (h : function.surjective pf.index_at)
+  {start_square end_square : m × n} (h_occ : pf.occupied_at start_square)  :
+  function.surjective (pf.move_piece start_square end_square).index_at :=
+begin
+  intro ix,
+  obtain ⟨P, hP⟩ := h ix,
+  simp_rw [←index_at_iff, ←hP],
+  rcases split_eq (P : m × n) start_square end_square with H|H|⟨hS, hE⟩,
+  { use end_square,
+    { simpa only [move_piece_occupied_end] using h_occ },
+    { simp only [H, index_at_some, subtype.coe_mk, move_piece_end] } },
+  { use start_square,
+    { simpa only [H, move_piece_occupied_start] using P.property  },
+    { simp only [H, move_piece_start, index_at_some, subtype.coe_mk] } },
+  { use P,
+    { simpa only [hS, hE, ne.def, not_false_iff,
+                  move_piece_occupied_diff] using P.property },
+    { simp only [hS, hE, index_at_some, ne.def, not_false_iff,
+                 move_piece_diff, subtype.coe_mk]} }
 end
 
 end move_piece
@@ -658,4 +931,3 @@ end move_sequence
 end playfield
 
 end playfield
-#lint

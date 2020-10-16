@@ -60,7 +60,11 @@ variables (K : Type*)
 /--
 A board is axiomatized as a set of indexable (ergo distinguishable) pieces
 which are placed on distinct squares of a `playfield`.
+
+No inhabited instance because the index type can be larger than the
+cardinality of the playfield dimensions.
 -/
+@[nolint has_inhabited_instance]
 structure board :=
 -- The pieces the board holds, provided as an indexed vector
 (pieces : ι → K)
@@ -75,9 +79,11 @@ structure board :=
 namespace board
 
 variables {m n ι K}
-/-- The width of the board. -/
+/-- The width of the board. Explicit argument for projection notation. -/
+@[nolint unused_arguments]
 def width (b : board m n ι K) : ℕ := fintype.card n
-/-- The height of the board. -/
+/-- The height of the board. Explicit argument for projection notation. -/
+@[nolint unused_arguments]
 def height (b : board m n ι K) : ℕ := fintype.card m
 
 /-- The state of the board, where pieces of the same type are equivalent -/
@@ -91,27 +97,40 @@ instance : has_equiv (board m n ι K) := ⟨λ b b', reduce b = reduce b'⟩
 instance : has_mem ι (board m n ι K) :=
 ⟨λ ix b, ix ∈ b.contents⟩
 
+/--
+Explicitly state that the proposition that an index `ix : ι` is in the board
+is `decidable`, when the `ι` is itself `decidable_eq`.
+-/
 instance contents_decidable {b : board m n ι K} {ix : ι} : decidable (ix ∈ b) :=
 set.decidable_mem ((∈) ix) b
 
+/--
+A board contains all of the `ix : ι` indices that it knows of,
+stated explicitly. Uses the `board.contains` constraint.
+-/
 lemma retains_pieces (b : board m n ι K) (ix : ι) : ix ∈ b.contents :=
-begin
-  obtain ⟨pos, h⟩ := b.contains ix,
-  rw ←h,
-  exact playfield.index_at_in pos,
-end
+exists.elim (b.contains ix) (λ pos h, h ▸ playfield.index_at_in pos)
 
+/--
+A board maps each index `ix : ι` to a unique position `pos : m × n`,
+stated explicitly. Uses the `board.injects` constraint.
+-/
 lemma no_superimposed (b : board m n ι K) (pos pos' : m × n) (hne : pos ≠ pos')
-  (h : b.contents.occupied_at pos) (h' : b.contents.occupied_at pos') :
-  b.contents pos ≠ b.contents pos' :=
+  (h : b.contents.occupied_at pos) : b.contents pos ≠ b.contents pos' :=
 λ H, hne (b.injects h H)
 
+/--
+Given that the board is `occupied_at` some `pos : m × n`,
+then the index at some `pos' : m × n` is equal to the index at `pos`,
+iff that `pos'` is equal `pos' = pos`.
+-/
 protected lemma inj_iff (b : board m n ι K) :
   ∀ {pos pos' : m × n}, b.contents.occupied_at pos → (b.contents pos = b.contents pos' ↔ pos = pos') :=
 λ _ _ H, playfield.inj_iff b.contents b.injects H
 
 section repr
 
+-- A board can be represented if the pieces themselves can be represented
 variables [has_repr K]
 variables {n' m' ix : ℕ}
 
@@ -139,6 +158,7 @@ def board_repr {K : Type*} [has_repr K] {n m ix : ℕ}
   (b : board (fin m) (fin n) (fin ix) K) : string :=
 b.board_repr_pieces ++ ";\n\n" ++ b.board_repr_contents
 
+/-- A board's representation is provided by `board_repr`. -/
 instance board_repr_instance : has_repr (board (fin m') (fin n') (fin ix) K) := ⟨board_repr⟩
 
 end repr
