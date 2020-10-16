@@ -1,8 +1,8 @@
 [package]
 name = "lean-across-the-board"
 version = "0.1.0"
-lean_version = "leanprover-community/lean:3.20.0"
+lean_version = "leanprover-community/lean:3.21.0"
 path = "src"
 
 [dependencies]
-mathlib = {git = "https://github.com/leanprover-community/mathlib", rev = "89d8cc371944af963ac85816334b6c4491fc44de"}
+mathlib = {git = "https://github.com/leanprover-community/mathlib", rev = "0d9227f8afce790efd9e73dbc0e55768b83d4a7d"}
