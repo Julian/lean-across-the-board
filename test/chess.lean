@@ -1,4 +1,4 @@
-import chess.move
+import chess.move.legal
 
 /-!
 We define local instances for `option (fin n)` for a notational shortcut.
@@ -66,5 +66,11 @@ def cycle : chess.move.sequence _ _ _ _ _ := {
     (downright.end_square, downright.start_square)
   ]
 }
+
+section legal
+
+example : chess.move.legal := { downright with legality := dec_trivial }
+
+end legal
 
 end move

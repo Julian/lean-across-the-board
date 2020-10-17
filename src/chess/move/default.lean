@@ -254,7 +254,8 @@ def boards (ixₒ : fin (o + 1)) : board m n ι K :=
 /-- The board which results from applying all `move`s in the `sequence`. -/
 def end_board : board m n ι K := s.boards (fin.last o)
 
-variables {b s}
+variables {b}
+variables (s)
 
 /-- The `ix₀`'th `move` in the `sequence`. -/
 def moves (ixₒ : fin o) : chess.move (s.boards ixₒ.cast_succ) :=
