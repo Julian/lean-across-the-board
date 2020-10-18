@@ -107,21 +107,8 @@ b.contents.move_piece_diff h h'
 by simp only [h, h', ne.def, playfield.move_piece_occupied_diff, not_false_iff]
 
 /-- The start and end squares of a move are distinct. -/
-lemma diff_squares : f.start_square ≠ f.end_square := begin
-  obtain ⟨pos, hpos⟩ := f.occupied_start,
-  have h' := f.unoccupied_end,
-  simp only [playfield.occupied_at_iff, not_exists, auto_param_eq] at h',
-  have h_ne : b.contents f.start_square ≠ b.contents f.end_square,
-  {
-    rw hpos,
-    by_contradiction,
-    push_neg at a,
-    have := h' pos,
-    rw a at this,
-    contradiction,
-  },
-  { exact (is_function b.contents) h_ne },
-end
+lemma diff_squares : f.start_square ≠ f.end_square :=
+λ H, f.unoccupied_end (H ▸ f.occupied_start)
 
 /-- The piece that is being moved. -/
 def piece : K :=
