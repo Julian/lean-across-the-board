@@ -189,6 +189,15 @@ lemma occupied_at_of_some {pos : m × n} {ix : ι} (h : pf pos = some ix) :
 ⟨ix, h⟩
 
 /--
+If for some `pf : playfield m n ι`, at `pos : m × n`, `pf.occupied_at pos`,
+then for a `pos' : m × n` such that `pf pos = pf pos', we have that
+`pf.occupied_at pos'`.
+-/
+lemma occupied_at_transfer {pos pos' : m × n} (h : pf.occupied_at pos) (H : pf pos = pf pos') :
+  pf.occupied_at pos' :=
+exists.elim h (λ ix hix, ⟨ix, H ▸ hix⟩)
+
+/--
 If for some `pf : playfield m n ι`, at `pos : m × n`, `pf pos ≠ none`,
 then that is equivalent to `pf.occupied_at pos`.
 -/
@@ -196,14 +205,50 @@ lemma occupied_at_of_ne {pos : m × n} (hne : pf pos ≠ none) : pf.occupied_at 
 option.ne_none_iff_exists'.mp hne
 
 /-- A wrapper API for underlying `option.is_some` propositions. -/
-lemma occupied_has_some {pf : playfield m n ι} {pos : m × n} :
+lemma occupied_has_some {pos : m × n} :
   (pf pos).is_some ↔ pf.occupied_at pos :=
 option.is_some_iff_exists
 
 /-- A wrapper API for converting between inequalities and existentials. -/
-lemma occupied_has_not_none {pf : playfield m n ι} {pos : m × n} :
+lemma occupied_has_not_none {pos : m × n} :
   pf pos ≠ none ↔ pf.occupied_at pos :=
 option.ne_none_iff_exists'
+
+variable (pf)
+
+/-- The `set` of all positions that are `occupied_at`. -/
+def occupied_position_set : set (m × n) := {p : m × n | pf.occupied_at p}
+
+/--
+The predicate that `λ p, p ∈ pf.occupied_position_set` for some pos is decidable
+if the indices `ix : ι` are finite and decidably equal.
+-/
+instance occ_set_decidable [fintype ι] [decidable_eq ι] :
+  decidable_pred (pf.occupied_position_set) :=
+playfield.decidable_pred (λ (pos : m × n), pf pos)
+
+variables [fintype m] [fintype n]
+variables [fintype ι] [decidable_eq ι]
+
+/--
+When the `playfield` dimensions are all finite,
+the `occupied_positions_set` of all positions that are `occupied_at` is finite.
+-/
+instance fintype_occupied : fintype (pf.occupied_position_set) :=
+by { unfold occupied_position_set, exact set_fintype _ }
+
+/--
+When the `playfield` dimensions are all finite,
+the `occupied_positions_set` of all positions that are `occupied_at` is a `fintype`.
+-/
+lemma finite_occupied : pf.occupied_position_set.finite :=
+set.finite.of_fintype pf.occupied_position_set
+
+/--
+The `finset` of all positions that are `occupied_at`,
+when all the dimensions of the `playfield` are `fintype`.
+-/
+def occupied_position_finset : finset (m × n) := pf.occupied_position_set.to_finset
 
 end occupied
 
@@ -212,6 +257,10 @@ section injective
 /-- A `playfield` on which every index that appears, appears only once. -/
 def some_injective : Prop :=
 ∀ ⦃a₁⦄, pf.occupied_at a₁ → ∀ ⦃a₂⦄, pf a₁ = pf a₂ → a₁ = a₂
+
+/-- The injectivity of `some_injective` is equivalent to the `set.inj_on` proposition. -/
+lemma inj_on_occupied : pf.some_injective ↔ set.inj_on pf pf.occupied_position_set :=
+⟨λ h _ hp _ _ H, h hp H, λ h _ hp _ H, h hp (occupied_at_transfer hp H) H⟩
 
 /--
 Explicitly state that the proposition that `pf.some_injective`
