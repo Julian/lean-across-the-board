@@ -25,6 +25,9 @@ structure colored_piece :=
 (piece : piece)
 (color : color)
 
+/-- "Forget" a piece's color. -/
+instance : has_coe colored_piece piece := ⟨colored_piece.piece⟩
+
 @[pattern] def white_bishop : colored_piece := ⟨piece.bishop, color.white⟩
 @[pattern] def white_king : colored_piece := ⟨piece.king, color.white⟩
 @[pattern] def white_knight : colored_piece := ⟨piece.knight, color.white⟩
