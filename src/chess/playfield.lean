@@ -217,38 +217,46 @@ option.ne_none_iff_exists'
 variable (pf)
 
 /-- The `set` of all positions that are `occupied_at`. -/
-def occupied_position_set : set (m × n) := {p : m × n | pf.occupied_at p}
+def occupied_positions : set (m × n) := {p : m × n | pf.occupied_at p}
+
+/--
+The `pos : m × n` that is in `pf.occupied_positions`
+by definition is the proposition that `pf.occupied_at pos`.
+-/
+@[simp] lemma occupied_positions_in (pos : m × n) :
+  pos ∈ pf.occupied_positions ↔ pf.occupied_at pos := iff.rfl
 
 /--
 The predicate that `λ p, p ∈ pf.occupied_position_set` for some pos is decidable
 if the indices `ix : ι` are finite and decidably equal.
 -/
 instance occ_set_decidable [fintype ι] [decidable_eq ι] :
-  decidable_pred (pf.occupied_position_set) :=
+  decidable_pred (pf.occupied_positions) :=
 playfield.decidable_pred (λ (pos : m × n), pf pos)
 
 variables [fintype m] [fintype n]
+
+/--
+When the `playfield` dimensions are all finite,
+the `occupied_positions_set` of all positions that are `occupied_at` is a `fintype`.
+-/
+lemma finite_occupied : pf.occupied_positions.finite :=
+set.finite.of_fintype pf.occupied_positions
+
 variables [fintype ι] [decidable_eq ι]
 
 /--
 When the `playfield` dimensions are all finite,
 the `occupied_positions_set` of all positions that are `occupied_at` is finite.
 -/
-instance fintype_occupied : fintype (pf.occupied_position_set) :=
-by { unfold occupied_position_set, exact set_fintype _ }
-
-/--
-When the `playfield` dimensions are all finite,
-the `occupied_positions_set` of all positions that are `occupied_at` is a `fintype`.
--/
-lemma finite_occupied : pf.occupied_position_set.finite :=
-set.finite.of_fintype pf.occupied_position_set
+instance fintype_occupied : fintype (pf.occupied_positions) :=
+by { unfold occupied_positions, exact set_fintype _ }
 
 /--
 The `finset` of all positions that are `occupied_at`,
 when all the dimensions of the `playfield` are `fintype`.
 -/
-def occupied_position_finset : finset (m × n) := pf.occupied_position_set.to_finset
+def occupied_position_finset : finset (m × n) := pf.occupied_positions.to_finset
 
 end occupied
 
@@ -259,7 +267,7 @@ def some_injective : Prop :=
 ∀ ⦃a₁⦄, pf.occupied_at a₁ → ∀ ⦃a₂⦄, pf a₁ = pf a₂ → a₁ = a₂
 
 /-- The injectivity of `some_injective` is equivalent to the `set.inj_on` proposition. -/
-lemma inj_on_occupied : pf.some_injective ↔ set.inj_on pf pf.occupied_position_set :=
+lemma inj_on_occupied : pf.some_injective ↔ set.inj_on pf pf.occupied_positions :=
 ⟨λ h _ hp _ _ H, h hp H, λ h _ hp _ H, h hp (occupied_at_transfer hp H) H⟩
 
 /--
@@ -309,21 +317,6 @@ begin
 end
 
 end injective
-
-/--
-The positions `pos : m × n` for a `pf : playfield m n ι`
-such that there is an index `ix : ι` at `pf pos`.
-In other words, the positions of `pf` that are occupied.
-
-No inhabited instance exists because the type could be empty,
-if all the positions of the playfield are empty.
--/
-@[nolint has_inhabited_instance]
-def occupied_positions : Type* :=
-  {pos : m × n // pf.occupied_at pos}
-
-/-- A `pos : pf.occupied_positions` can be used as a `pos : m × n`. -/
-instance coe_occ_t : has_coe_t pf.occupied_positions (m × n) := ⟨subtype.val⟩
 
 section decidable
 
@@ -575,7 +568,8 @@ lemma pos_from_auxf_finset (pos : pf.pos_from_aux ix) :
   (pos : pf.occupied_positions) ∈ pf.pos_from_auxf ix :=
 begin
   unfold pos_from_auxf,
-  simp only [pos_from_aux_subtype, set.mem_set_of_eq, set.mem_to_finset]
+  simp only [set.mem_to_finset],
+  exact pos.property,
 end
 
 /-- A helper finset definition describing all the positions that match an index. -/
@@ -583,7 +577,8 @@ end
   pos ∈ pf.pos_from_auxf ix :=
 begin
   unfold pos_from_auxf,
-  simp only [h, set.mem_set_of_eq, set.mem_to_finset]
+  simp only [set.mem_to_finset],
+  exact h,
 end
 
 variables (h_inj : pf.some_injective) (surj : function.surjective pf.index_at)
@@ -915,16 +910,16 @@ begin
   simp_rw [←index_at_iff, ←hP],
   rcases split_eq (P : m × n) start_square end_square with H|H|⟨hS, hE⟩,
   { use end_square,
-    { simpa only [move_piece_occupied_end] using h_occ },
+    { simpa only [move_piece_occupied_end, occupied_positions_in] using h_occ },
     { simp only [H, index_at_some, subtype.coe_mk, move_piece_end] } },
   { use start_square,
-    { simpa only [H, move_piece_occupied_start] using P.property  },
+    { simpa only [H, move_piece_occupied_start, occupied_positions_in] using P.property },
     { simp only [H, move_piece_start, index_at_some, subtype.coe_mk] } },
   { use P,
     { simpa only [hS, hE, ne.def, not_false_iff,
-                  move_piece_occupied_diff] using P.property },
+                  move_piece_occupied_diff, occupied_positions_in] using P.property},
     { simp only [hS, hE, index_at_some, ne.def, not_false_iff,
-                 move_piece_diff, subtype.coe_mk]} }
+                 move_piece_diff, subtype.coe_mk] } }
 end
 
 end move_piece
