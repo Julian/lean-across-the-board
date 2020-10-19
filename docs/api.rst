@@ -1145,12 +1145,6 @@ Helpers that don’t currently fit elsewhere…
 
 
 
-.. theorem:: is_function
-
-    A function maps an element of its domain to a single element of its
-    range.
-
-
 .. theorem:: split_eq
 
 
