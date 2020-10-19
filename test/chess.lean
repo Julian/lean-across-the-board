@@ -39,7 +39,7 @@ example : b₁.height = 3 := rfl
 example : 0 ∈ b₁.contents := dec_trivial
 example : 0 ∈ b₁ := dec_trivial
 
-variables {p p' q q' r r' : chess.colored_pieces}
+variables {p p' q q' r r' : chess.colored_piece}
 
 def b₂ : chess.board _ _ _ _ :=
   { chess.board .

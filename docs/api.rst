@@ -417,12 +417,12 @@ Chess piece implementation.
 
 
 
-.. theorem:: chess.colored_pieces
+.. theorem:: chess.colored_piece
 
 
 
 
-.. theorem:: chess.colored_pieces.decidable_eq
+.. theorem:: chess.colored_piece.decidable_eq
 
 
 
@@ -437,12 +437,12 @@ Chess piece implementation.
 
 
 
-.. theorem:: chess.pieces
+.. theorem:: chess.piece
 
 
 
 
-.. theorem:: chess.pieces.decidable_eq
+.. theorem:: chess.piece.decidable_eq
 
 
 

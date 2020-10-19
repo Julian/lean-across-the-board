@@ -12,7 +12,7 @@ inductive color
 | black
 
 @[derive decidable_eq]
-inductive pieces
+inductive piece
 | bishop
 | king
 | knight
@@ -21,23 +21,23 @@ inductive pieces
 | rook
 
 @[derive decidable_eq]
-structure colored_pieces :=
-(piece : pieces)
+structure colored_piece :=
+(piece : piece)
 (color : color)
 
-@[pattern] def white_bishop : colored_pieces := ⟨pieces.bishop, color.white⟩
-@[pattern] def white_king : colored_pieces := ⟨pieces.king, color.white⟩
-@[pattern] def white_knight : colored_pieces := ⟨pieces.knight, color.white⟩
-@[pattern] def white_pawn : colored_pieces := ⟨pieces.pawn, color.white⟩
-@[pattern] def white_queen : colored_pieces := ⟨pieces.queen, color.white⟩
-@[pattern] def white_rook : colored_pieces := ⟨pieces.rook, color.white⟩
+@[pattern] def white_bishop : colored_piece := ⟨piece.bishop, color.white⟩
+@[pattern] def white_king : colored_piece := ⟨piece.king, color.white⟩
+@[pattern] def white_knight : colored_piece := ⟨piece.knight, color.white⟩
+@[pattern] def white_pawn : colored_piece := ⟨piece.pawn, color.white⟩
+@[pattern] def white_queen : colored_piece := ⟨piece.queen, color.white⟩
+@[pattern] def white_rook : colored_piece := ⟨piece.rook, color.white⟩
 
-@[pattern] def black_bishop : colored_pieces := ⟨pieces.bishop, color.black⟩
-@[pattern] def black_king : colored_pieces := ⟨pieces.king, color.black⟩
-@[pattern] def black_knight : colored_pieces := ⟨pieces.knight, color.black⟩
-@[pattern] def black_pawn : colored_pieces := ⟨pieces.pawn, color.black⟩
-@[pattern] def black_queen : colored_pieces := ⟨pieces.queen, color.black⟩
-@[pattern] def black_rook : colored_pieces := ⟨pieces.rook, color.black⟩
+@[pattern] def black_bishop : colored_piece := ⟨piece.bishop, color.black⟩
+@[pattern] def black_king : colored_piece := ⟨piece.king, color.black⟩
+@[pattern] def black_knight : colored_piece := ⟨piece.knight, color.black⟩
+@[pattern] def black_pawn : colored_piece := ⟨piece.pawn, color.black⟩
+@[pattern] def black_queen : colored_piece := ⟨piece.queen, color.black⟩
+@[pattern] def black_rook : colored_piece := ⟨piece.rook, color.black⟩
 
 notation ` ♔ ` := chess.white_king
 notation ` ♕ ` := chess.white_queen
@@ -55,7 +55,7 @@ notation ` ♟︎ ` := chess.black_pawn
 
 notation ` __ ` := none
 
-def piece_repr : colored_pieces → string
+def piece_repr : colored_piece → string
 | ♔ := "♔"
 | ♕ := "♕"
 | ♖ := "♖"
@@ -69,6 +69,6 @@ def piece_repr : colored_pieces → string
 | ♞ := "♞"
 | ♟︎ := "♟︎"
 
-instance : has_repr colored_pieces := ⟨piece_repr⟩
+instance : has_repr colored_piece := ⟨piece_repr⟩
 
 end chess
