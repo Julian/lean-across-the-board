@@ -1,5 +1,4 @@
-import chess.move
-import data.vector2
+import chess.move.legal
 
 /-!
 
@@ -59,7 +58,7 @@ def ending_position : chess.board _ _ _ _ := {
 
 -- Direct solution
 
-def guarini_seq : chess.move.sequence _ _ _ _ _ :=
+def guarini_seq : chess.move.sequence.legal :=
 { start_board := starting_position,
   elements := ![
   ((2, 0), (0, 1)),
@@ -82,13 +81,13 @@ def guarini_seq : chess.move.sequence _ _ _ _ _ :=
 def first_move : chess.move starting_position :=
 let pair := guarini_seq.elements 0 in ⟨pair.fst, pair.snd, dec_trivial, dec_trivial⟩
 
-example : guarini_seq.boards 0 ≈ guarini_seq.start_board := dec_trivial
+example : guarini_seq.to_sequence.boards 0 ≈ guarini_seq.start_board := dec_trivial
 
-example : guarini_seq.boards 1 ≈ first_move.perform_move := dec_trivial
+example : guarini_seq.to_sequence.boards 1 ≈ first_move.perform_move := dec_trivial
 
 example : ∀ ix, (guarini_seq.elements ix).fst ≠ (guarini_seq.elements ix).snd := dec_trivial
 
 lemma guarini : starting_position.has_sequence_to ending_position :=
-⟨_, guarini_seq, dec_trivial⟩
+⟨_, guarini_seq.to_sequence, dec_trivial⟩
 
 -- Graph-equivalence

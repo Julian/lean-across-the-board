@@ -1,4 +1,4 @@
-import chess.move
+import chess.move.legal
 
 /-!
 We define local instances for `option (fin n)` for a notational shortcut.
@@ -39,9 +39,7 @@ example : b₁.height = 3 := rfl
 example : 0 ∈ b₁.contents := dec_trivial
 example : 0 ∈ b₁ := dec_trivial
 
-variables {p p' q q' r r' : chess.colored_piece}
-
-def b₂ : chess.board _ _ _ _ :=
+def b₂ {p p' q q' r r' : chess.colored_piece} : chess.board _ _ _ _ :=
   { chess.board .
     pieces := ![p, p', q, q', r, r'],
     contents := PF ![
@@ -66,5 +64,28 @@ def cycle : chess.move.sequence _ _ _ _ _ := {
     (downright.end_square, downright.start_square)
   ]
 }
+
+section legal
+
+def centered_knight : chess.board _ _ _ _ :=
+  { pieces := ![♘],
+    contents := PF ![
+      ![__, __, __, __, __],
+      ![__, __,  0, __, __],
+      ![__, __, __, __, __] ] }
+
+example : chess.move.legal centered_knight := { start_square := (1, 2), end_square := (0, 0) }
+example : chess.move.legal centered_knight := { start_square := (1, 2), end_square := (2, 0) }
+example : chess.move.legal centered_knight := { start_square := (1, 2), end_square := (0, 4) }
+example : chess.move.legal centered_knight := { start_square := (1, 2), end_square := (2, 4) }
+
+def centered_king : chess.board _ _ _ _ :=
+  { pieces := ![♔],
+    contents := PF ![
+      ![__, __, __, __, __],
+      ![__, __,  0, __, __],
+      ![__, __, __, __, __] ] }
+
+end legal
 
 end move
