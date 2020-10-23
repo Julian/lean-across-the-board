@@ -370,6 +370,68 @@ Implementation notes
     ``start_board``.
 
 
+``chess.move.legal``
+====================
+
+
+.. theorem:: chess.move.adjacent
+
+    Two squares ``s`` and ``s'`` are adjacent (i.e. have no square between
+    them).
+
+
+.. theorem:: chess.move.adjacent.decidable_pred
+
+
+
+
+.. theorem:: chess.move.between
+
+    The finite set of (presumably squares) between two elements of ``m`` (or
+    ``n``).
+
+
+.. theorem:: chess.move.is_legal
+
+    A legal chess move.
+
+
+.. theorem:: chess.move.is_legal_decidable
+
+
+
+
+.. theorem:: chess.move.knight_move
+
+    A legal knight move moves 2 squares in one direction and 1 in the other.
+
+
+.. theorem:: chess.move.knight_move.decidable_pred
+
+
+
+
+.. theorem:: chess.move.legal
+
+    A legal move is a ``move`` along with a proof that the move satisfies
+    the rules of chess.
+
+
+.. theorem:: chess.move.one_gap
+
+    Two squares ``s`` and ``s'`` have exactly one square between them.
+
+
+.. theorem:: chess.move.one_gap.decidable_pred
+
+
+
+
+.. theorem:: chess.move.sequence.legal
+
+
+
+
 ``chess.piece``
 ===============
 
@@ -427,12 +489,12 @@ Chess piece implementation.
 
 
 
+.. theorem:: chess.has_coe
+
+    “Forget” a piece’s color.
+
+
 .. theorem:: chess.has_repr
-
-
-
-
-.. theorem:: chess.piece_repr
 
 
 
@@ -442,7 +504,12 @@ Chess piece implementation.
 
 
 
-.. theorem:: chess.piece.decidable_eq
+.. theorem:: decidable_eq
+
+
+
+
+.. theorem:: chess.piece_repr
 
 
 
@@ -567,11 +634,6 @@ Implementation details
     occupied.
 
 
-.. theorem:: playfield.coe_occ_t
-
-    A ``pos : pf.occupied_positions`` can be used as a ``pos : m × n``.
-
-
 .. theorem:: playfield.coe_occ_val
 
     A ``pos : pf.occupied_positions`` can be used as a ``pos : m × n``.
@@ -597,9 +659,23 @@ Implementation details
     : ι\ ``such that``\ pf pos = some ix`.
 
 
+.. theorem:: playfield.finite_occupied
+
+    When the ``playfield`` dimensions are all finite, the
+    ``occupied_positions_set`` of all positions that are ``occupied_at`` is
+    a ``fintype``.
+
+
 .. theorem:: playfield.fintype
 
 
+
+
+.. theorem:: playfield.fintype_occupied
+
+    When the ``playfield`` dimensions are all finite, the
+    ``occupied_positions_set`` of all positions that are ``occupied_at`` is
+    finite.
 
 
 .. theorem:: playfield.has_coe
@@ -721,6 +797,12 @@ Implementation details
     at some ``pos : m × n``, then it is injective at that ``pos``.
 
 
+.. theorem:: playfield.inj_on_occupied
+
+    The injectivity of ``some_injective`` is equivalent to the
+    ``set.inj_on`` proposition.
+
+
 .. theorem:: playfield.injective
 
     When a ``pf : playfield m n ι`` is ``some_injective``, if it is not
@@ -815,6 +897,12 @@ Implementation details
     nonempty.
 
 
+.. theorem:: playfield.occ_set_decidable
+
+    The predicate that ``λ p, p ∈ pf.occupied_position_set`` for some pos is
+    decidable if the indices ``ix : ι`` are finite and decidably equal.
+
+
 .. theorem:: playfield.occupied_at
 
     A wrapper to indicate that there is some ``ix : ι`` such that for a
@@ -845,6 +933,13 @@ Implementation details
     ``pf pos = some ix``, then that is equivalent to ``pf.occupied_at pos``.
 
 
+.. theorem:: playfield.occupied_at_transfer
+
+    If for some ``pf : playfield m n ι``, at ``pos : m × n``,
+    ``pf.occupied_at pos``, then for a ``pos' : m × n`` such that
+    ``pf pos = pf pos'``, we have that ``pf.occupied_at pos'``.
+
+
 .. theorem:: playfield.occupied_at_unique
 
     A ``pf : playfield m n ι`` maps any occupied ``pos`` uniquely.
@@ -872,14 +967,15 @@ Implementation details
     occupied.
 
 
+.. theorem:: playfield.occupied_position_finset
+
+    The ``finset`` of all positions that are ``occupied_at``, when all the
+    dimensions of the ``playfield`` are ``fintype``.
+
+
 .. theorem:: playfield.occupied_positions
 
-    The positions ``pos : m × n`` for a ``pf : playfield m n ι`` such that
-    there is an index ``ix : ι`` at ``pf pos``. In other words, the
-    positions of ``pf`` that are occupied.
-
-    No inhabited instance exists because the type could be empty, if all the
-    positions of the playfield are empty.
+    The ``set`` of all positions that are ``occupied_at``.
 
 
 .. theorem:: playfield.occupied_positions.mk
@@ -894,6 +990,12 @@ Implementation details
     Given some ``ix : ι`` such that for ``pf : playfield m n ι`` and
     ``pos : m × n``, ``pf pos = some ix``, we can subtype into
     ``pos : pf.occupied_positions``.
+
+
+.. theorem:: playfield.occupied_positions_in
+
+    The ``pos : m × n`` that is in ``pf.occupied_positions`` by definition
+    is the proposition that ``pf.occupied_at pos``.
 
 
 .. theorem:: playfield.occupied_some_injective
