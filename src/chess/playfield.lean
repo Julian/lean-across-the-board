@@ -190,7 +190,7 @@ lemma occupied_at_of_some {pos : m × n} {ix : ι} (h : pf pos = some ix) :
 
 /--
 If for some `pf : playfield m n ι`, at `pos : m × n`, `pf.occupied_at pos`,
-then for a `pos' : m × n` such that `pf pos = pf pos', we have that
+then for a `pos' : m × n` such that `pf pos = pf pos'`, we have that
 `pf.occupied_at pos'`.
 -/
 lemma occupied_at_transfer {pos pos' : m × n} (h : pf.occupied_at pos) (H : pf pos = pf pos') :
