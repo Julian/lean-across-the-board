@@ -79,6 +79,10 @@ example : chess.move.legal centered_knight := { start_square := (1, 2), end_squa
 example : chess.move.legal centered_knight := { start_square := (1, 2), end_square := (0, 4) }
 example : chess.move.legal centered_knight := { start_square := (1, 2), end_square := (2, 4) }
 
+def illegal : chess.move centered_knight := { start_square := (1, 2), end_square := (1, 3) }
+
+example : ¬ illegal.is_legal := dec_trivial
+
 def centered_king : chess.board _ _ _ _ :=
   { pieces := ![♔],
     contents := PF ![
