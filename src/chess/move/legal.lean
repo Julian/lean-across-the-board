@@ -13,15 +13,15 @@ variables {b : chess.board m n ι chess.colored_piece}
 /-- The finite set of (presumably squares) between two elements of `m` (or `n`). -/
 def between (left right : m) := {x | left ≤ x ∧ x ≤ right}.to_finset
 
-/-- Two squares `s` and `s'` are adjacent (i.e. have no square between them). -/
+/-- Two squares `pos` and `pos'` are adjacent (i.e. have no square between them). -/
 @[derive decidable_pred]
-def adjacent (s s' : m) :=
-(between s s').card = 2 ∨ (between s' s).card = 2
+def adjacent (pos pos' : m) :=
+(between pos pos').card = 2 ∨ (between pos' pos).card = 2
 
-/-- Two squares `s` and `s'` have exactly one square between them. -/
+/-- Two squares `pos` and `pos'` have exactly one square between them. -/
 @[derive decidable_pred]
-def one_gap (s s' : m) :=
-(between s s').card = 3 ∨ (between s' s).card = 3
+def one_gap (pos pos' : m) :=
+(between pos pos').card = 3 ∨ (between pos' pos).card = 3
 
 /-- A legal knight move moves 2 squares in one direction and 1 in the other. -/
 @[derive decidable_pred]
