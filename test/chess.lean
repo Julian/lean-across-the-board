@@ -39,6 +39,8 @@ example : b₁.height = 3 := rfl
 example : 0 ∈ b₁.contents := dec_trivial
 example : 0 ∈ b₁ := dec_trivial
 
+example : b₁.piece_at (0, 0) = ♞ := rfl
+
 def b₂ {p p' q q' r r' : chess.colored_piece} : chess.board _ _ _ _ :=
   { chess.board .
     pieces := ![p, p', q, q', r, r'],

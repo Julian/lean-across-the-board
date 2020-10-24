@@ -111,8 +111,7 @@ lemma diff_squares : f.start_square ≠ f.end_square :=
 λ H, f.unoccupied_end (H ▸ f.occupied_start)
 
 /-- The piece that is being moved. -/
-def piece : K :=
-(b.pieces (b.contents.index_at ⟨f.start_square, f.occupied_start⟩))
+def piece : K := b.piece_at f.start_square f.occupied_start
 
 /-- Pieces do not become superimposed after a move. -/
 lemma no_superimposed (pos pos') (hne : pos ≠ pos')

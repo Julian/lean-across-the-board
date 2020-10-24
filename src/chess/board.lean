@@ -27,6 +27,8 @@ pieces can share a position on the playfield.
 comparison of boards that are equivalent modulo permutation of indices that point to
 equivalent pieces.
 
+3. `board.piece_at`, which extracts the piece which sits on a given square.
+
 ## Implementation notes
 
 1. A `board` requires finite dimensions for the `playfield`, finite indices, and a
@@ -163,6 +165,12 @@ instance board_repr_instance : has_repr (board (fin m') (fin n') (fin ix) K) := 
 
 end repr
 
+/-- The (colored) `piece` on a given square. -/
+def piece_at
+  (b : board m n ι K)
+  (pos : m × n)
+  (h : b.contents.occupied_at pos . tactic.exact_dec_trivial) : K :=
+b.pieces (b.contents.index_at ⟨pos, h⟩)
 
 end board
 

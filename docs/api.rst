@@ -29,6 +29,9 @@ Main definitions
    This allows comparison of boards that are equivalent modulo
    permutation of indices that point to equivalent pieces.
 
+3. ``board.piece_at``, which extracts the piece which sits on a given
+   square.
+
 Implementation notes
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -125,6 +128,11 @@ Implementation notes
 
     A board maps each index ``ix : ι`` to a unique position ``pos : m × n``,
     stated explicitly. Uses the ``board.injects`` constraint.
+
+
+.. theorem:: piece_at
+
+    The (colored) ``piece`` on a given square.
 
 
 .. theorem:: reduce
