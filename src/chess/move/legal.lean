@@ -1,6 +1,8 @@
+import data.fintype.basic
+
 import chess.move
 
-namespace chess.move
+namespace chess
 
 variables {m n: Type}
 
@@ -9,6 +11,8 @@ variables [fintype n] [decidable_eq n] [decidable_linear_order n]
 variables {ι : Type} [fintype ι] [decidable_eq ι]
 
 variables {b : chess.board m n ι chess.colored_piece}
+
+namespace move
 
 /-- The finite set of (presumably squares) between two elements of `m` (or `n`). -/
 def between (left right : m) := {x | left ≤ x ∧ x ≤ right}.to_finset
@@ -62,4 +66,31 @@ variables {o : ℕ}
 structure sequence.legal extends chess.move.sequence m n ι chess.colored_piece o :=
 (legality: ∀ (i : fin o), is_legal (to_sequence.moves i) . tactic.exact_dec_trivial)
 
-end chess.move
+end move
+
+namespace board
+
+variable (b)
+
+/-- The `set` of `legal` moves from a given square. -/
+def moves_from (pos : m × n) : set (move.legal b) :=
+{x : move.legal b | x.start_square = pos}.to_finset
+
+/-
+/-- The `set` of `legal` moves from a given square. -/
+lemma moves_from_def (pos : m × n) :
+  b.moves_from pos = {x : move.legal b | x.start_square = pos}.to_finset := rfl
+-/
+
+lemma knight_max_8_moves
+  {pos : m × n}
+  (h_occ : b.contents.occupied_at pos . tactic.exact_dec_trivial)
+  (h_knight : chess.piece.knight = (b.piece_at pos h_occ) . tactic.exact_dec_trivial)
+  : (b.moves_from pos).to_finset.card <= 8 :=
+begin
+  sorry,
+end
+
+end board
+
+end chess

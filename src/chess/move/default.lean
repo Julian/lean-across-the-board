@@ -1,5 +1,6 @@
 import data.equiv.basic
 import tactic.dec_trivial
+import tactic.derive_fintype
 
 import chess.board
 
@@ -63,7 +64,7 @@ made up of a single occupied position.
 
 (Captures are not implemented yet.)
 -/
-@[nolint has_inhabited_instance]
+@[derive fintype, nolint has_inhabited_instance]
 structure move :=
 (start_square : m × n)
 (end_square : m × n)
@@ -141,7 +142,6 @@ def perform_move : board m n ι K :=
   contents := b.contents.move_piece f.start_square f.end_square,
   contains := f.retains_surjectivity,
   injects := f.retains_injectivity }
-
 
 -- The length of the sequence
 variables {o : ℕ}
