@@ -1,3 +1,5 @@
+import tactic.derive_fintype
+
 /-!
 
 Chess piece implementation.
@@ -6,12 +8,12 @@ Chess piece implementation.
 
 namespace chess
 
-@[derive decidable_eq]
+@[derive [decidable_eq, fintype]]
 inductive color
 | white
 | black
 
-@[derive decidable_eq]
+@[derive [decidable_eq, fintype]]
 inductive piece
 | bishop
 | king
@@ -20,7 +22,7 @@ inductive piece
 | queen
 | rook
 
-@[derive decidable_eq]
+@[derive [decidable_eq, fintype]]
 structure colored_piece :=
 (piece : piece)
 (color : color)
