@@ -170,6 +170,12 @@ for a `pf : playfield m n ι`, at `pos : m × n`, `pf pos = some ix`.
 lemma occupied_at_iff {pos : m × n} : pf.occupied_at pos ↔ ∃ ix, pf pos = some ix := iff.rfl
 
 /--
+A `pos : m × n` is unoccupied iff it is `none`.
+-/
+lemma not_occupied_at_iff {pos : m × n} : ¬ pf.occupied_at pos ↔ pf pos = none :=
+by simp only [option.eq_none_iff_forall_not_mem, not_exists, option.mem_def]
+
+/--
 A `pf : playfield m n ι` maps any occupied `pos` uniquely.
 -/
 lemma occupied_at_unique {pos : m × n} (h : pf.occupied_at pos) : ∃! ix : ι, pf pos = some ix :=
@@ -213,6 +219,14 @@ option.is_some_iff_exists
 lemma occupied_has_not_none {pos : m × n} :
   pf pos ≠ none ↔ pf.occupied_at pos :=
 option.ne_none_iff_exists'
+
+/--
+If for some `pf : playfield m n ι`, at `pos : m × n`, `pf pos = none`,
+then that is equivalent to `¬ pf.occupied_at pos`.
+-/
+lemma not_occupied_has_none {pos : m × n} :
+  (pf pos).is_none ↔ ¬ pf.occupied_at pos :=
+by simpa only [not_occupied_at_iff] using option.is_none_iff_eq_none
 
 variable (pf)
 
