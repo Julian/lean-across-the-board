@@ -248,9 +248,19 @@ Implementation notes
     End squares are unoccupied before a move.
 
 
+.. theorem:: decidable_eq
+
+
+
+
 .. theorem:: diff_squares
 
     The start and end squares of a move are distinct.
+
+
+.. theorem:: fintype
+
+
 
 
 .. theorem:: no_superimposed
@@ -381,11 +391,78 @@ Implementation notes
 ``chess.move.legal``
 ====================
 
+Legal chess move definitions and theorems
+-----------------------------------------
+
+Summary
+~~~~~~~
+
+Legal chess ``move``\ s are moves which satisfy the legal rules of
+chess. This includes both the mathematics of which squares a given
+``piece`` type can move to and the broader set of ``board`` conditions
+that must be satisfied (e.g. not moving a ``king`` into check).
+
+Only a subset of these rules are currently implemented below so far.
+Currently:
+
+-  knight move math
+
+are what is implemented.
+
+(No chess variants are currently implemented either.)
+
+Main definitions
+~~~~~~~~~~~~~~~~
+
+1. ``move.is_legal``, which can decide whether a given ``move`` is legal
+
+2. ``move.legal``, which represents a ``move`` along with the above
+   proof that the ``move.is_legal``
+
+3. ``board.moves_from``, which given a position on the provided
+   ``board``, produces the set of legal moves which may be performed
+   from that square.
+
+Implementation notes
+~~~~~~~~~~~~~~~~~~~~
+
+1. ``moves_from`` is currently defined to return a ``finset``, even
+   though in theory topologically one could have boards with infinitely
+   many immediate next squares. This finiteness assumption will
+   eventually need fixing in other places, so it seems safe here for
+   now.
+
+2. The requirement of ``decidable_eq`` on the various types surrounding
+   ``move.legal`` means that again ``dec_trivial`` can automatically
+   infer proofs for move legality without them being explicitly
+   provided.
+
+
+
+.. theorem:: chess.board.mem_moves_from
+
+    The ``finset`` of ``legal`` moves from a given square.
+
+
+.. theorem:: chess.board.moves_from
+
+    The ``finset`` of ``legal`` moves from a given square.
+
+
+.. theorem:: chess.board.moves_from.fintype
+
+
+
+
+.. theorem:: chess.board.moves_from_def
+
+    The ``finset`` of ``legal`` moves from a given square.
+
 
 .. theorem:: chess.move.adjacent
 
-    Two squares ``s`` and ``s'`` are adjacent (i.e. have no square between
-    them).
+    Two squares ``pos`` and ``pos'`` are adjacent (i.e. have no square
+    between them).
 
 
 .. theorem:: chess.move.adjacent.decidable_pred
@@ -425,9 +502,14 @@ Implementation notes
     the rules of chess.
 
 
+.. theorem:: fintype
+
+
+
+
 .. theorem:: chess.move.one_gap
 
-    Two squares ``s`` and ``s'`` have exactly one square between them.
+    Two squares ``pos`` and ``pos'`` have exactly one square between them.
 
 
 .. theorem:: chess.move.one_gap.decidable_pred
@@ -438,6 +520,11 @@ Implementation notes
 .. theorem:: chess.move.sequence.legal
 
 
+
+
+.. theorem:: chess.moves_from.unoccupied_zero
+
+    There are 0 ``legal`` moves from an unoccupied square.
 
 
 ``chess.piece``
@@ -487,12 +574,22 @@ Chess piece implementation.
 
 
 
+.. theorem:: chess.color.fintype
+
+
+
+
 .. theorem:: chess.colored_piece
 
 
 
 
 .. theorem:: chess.colored_piece.decidable_eq
+
+
+
+
+.. theorem:: chess.colored_piece.fintype
 
 
 
@@ -513,6 +610,11 @@ Chess piece implementation.
 
 
 .. theorem:: decidable_eq
+
+
+
+
+.. theorem:: fintype
 
 
 
@@ -903,6 +1005,17 @@ Implementation details
     Given a surjectivity condition of ``pf.index_at``, the type of
     ``pos : pf.occupied_positions`` that identify a particular index is a
     nonempty.
+
+
+.. theorem:: playfield.not_occupied_at_iff
+
+    A ``pos : m × n`` is unoccupied iff it is ``none``.
+
+
+.. theorem:: playfield.not_occupied_has_none
+
+    If for some ``pf : playfield m n ι``, at ``pos : m × n``,
+    ``pf pos = none``, then that is equivalent to ``¬ pf.occupied_at pos``.
 
 
 .. theorem:: playfield.occ_set_decidable
