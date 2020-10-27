@@ -50,8 +50,8 @@ namespace chess
 
 variables {m n: Type}
 
-variables [fintype m] [decidable_eq m] [decidable_linear_order m]
-variables [fintype n] [decidable_eq n] [decidable_linear_order n]
+variables [fintype m] [decidable_eq m] [linear_order m]
+variables [fintype n] [decidable_eq n] [linear_order n]
 variables {ι : Type} [fintype ι] [decidable_eq ι]
 
 variables {b : chess.board m n ι chess.colored_piece}

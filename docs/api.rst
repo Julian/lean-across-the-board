@@ -40,9 +40,6 @@ Implementation notes
    to potentially infinite types. However, since ``playfield``\ s are
    usually provided by ``matrix``, which is restricted to finite
    dimensions, it is easiest to define the board as finite.
-   Additionally, to perform position math, more constraints on the
-   dimension types will likely be necessary, like
-   ``decidable_linear_order``.
 
 2. The requirement of ``decidable_eq`` on the dimensions and index
    allows use of ``dec_trivial`` to automatically infer proofs for board
