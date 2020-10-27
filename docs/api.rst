@@ -59,7 +59,7 @@ Implementation notes
 
 
 
-.. theorem:: chess.board
+.. constant:: chess.board
 
     A board is axiomatized as a set of indexable (ergo distinguishable)
     pieces which are placed on distinct squares of a ``playfield``.
@@ -67,8 +67,7 @@ Implementation notes
     No inhabited instance because the index type can be larger than the
     cardinality of the playfield dimensions.
 
-
-.. theorem:: board_repr
+.. definition:: board_repr
 
     A board’s representation is just the concatentation of the
     representations of the ``pieces`` and ``contents`` via
@@ -76,7 +75,7 @@ Implementation notes
     newlines inserted for clarity.
 
 
-.. theorem:: board_repr_contents
+.. definition:: board_repr_contents
 
     A board’s ``contents`` can be represented by reducing the board
     according to the indexed vector at ``pieces``, and placing the pieces on
@@ -85,34 +84,34 @@ Implementation notes
     positions.
 
 
-.. theorem:: board_repr_instance
+.. definition:: board_repr_instance
 
     A board’s representation is provided by ``board_repr``.
 
 
-.. theorem:: board_repr_pieces
+.. definition:: board_repr_pieces
 
     A board’s ``pieces`` is a “vector”, so ``vec_repr`` is used to represent
     it.
 
 
-.. theorem:: contents_decidable
+.. definition:: contents_decidable
 
     Explicitly state that the proposition that an index ``ix : ι`` is in the
     board is ``decidable``, when the ``ι`` is itself ``decidable_eq``.
 
 
-.. theorem:: has_equiv
+.. definition:: has_equiv
 
 
 
 
-.. theorem:: has_mem
+.. definition:: has_mem
 
 
 
 
-.. theorem:: height
+.. definition:: height
 
     The height of the board. Explicit argument for projection notation.
 
@@ -130,12 +129,12 @@ Implementation notes
     stated explicitly. Uses the ``board.injects`` constraint.
 
 
-.. theorem:: piece_at
+.. definition:: piece_at
 
     The (colored) ``piece`` on a given square.
 
 
-.. theorem:: reduce
+.. definition:: reduce
 
     The state of the board, where pieces of the same type are equivalent
 
@@ -146,7 +145,7 @@ Implementation notes
     explicitly. Uses the ``board.contains`` constraint.
 
 
-.. theorem:: width
+.. definition:: width
 
     The width of the board. Explicit argument for projection notation.
 
@@ -195,19 +194,19 @@ Implementation notes
 
 
 
-.. theorem:: chess.board.has_sequence_len
+.. definition:: chess.board.has_sequence_len
 
     Assert the existence of a ``sequence`` of length ``o`` from a
     ``start_board`` to a given end board.
 
 
-.. theorem:: chess.board.has_sequence_to
+.. definition:: chess.board.has_sequence_to
 
     Assert the existence of a ``sequence`` from a ``start_board`` to a given
     end board.
 
 
-.. theorem:: chess.move
+.. constant:: chess.move
 
     A move is a (distinct) start and end square whose start square is
     occupied and whose end square is not.
@@ -216,7 +215,6 @@ Implementation notes
     occupied position.
 
     (Captures are not implemented yet.)
-
 
 .. theorem:: after_occupied_end
 
@@ -248,7 +246,7 @@ Implementation notes
     End squares are unoccupied before a move.
 
 
-.. theorem:: decidable_eq
+.. definition:: decidable_eq
 
 
 
@@ -258,7 +256,7 @@ Implementation notes
     The start and end squares of a move are distinct.
 
 
-.. theorem:: fintype
+.. definition:: fintype
 
 
 
@@ -268,12 +266,12 @@ Implementation notes
     Pieces do not become superimposed after a move.
 
 
-.. theorem:: perform_move
+.. definition:: perform_move
 
     A valid ``move`` on a ``board`` retains a valid board state.
 
 
-.. theorem:: piece
+.. definition:: piece
 
     The piece that is being moved.
 
@@ -290,20 +288,19 @@ Implementation notes
     ``board`` it operates on.
 
 
-.. theorem:: scan_contents
+.. definition:: scan_contents
 
     Define the mapping of ``playfield``\ s after performing successive
     ``move_piece``\ s using the pairs of positions in the provided
     ``elements``, starting from the ``start_board``.
 
 
-.. theorem:: sequence
+.. constant:: sequence
 
     A move ``sequence`` represents a sequential set of moves from a starting
     ``board``.
 
     No inhabited instance because boards do not have an inhabited instance.
-
 
 .. theorem:: sequence.all_occupied_start
 
@@ -317,13 +314,13 @@ Implementation notes
     move.
 
 
-.. theorem:: sequence.boards
+.. definition:: sequence.boards
 
     The board which results from applying the first ``ix₀ + 1`` ``move``\ s
     in the ``sequence``.
 
 
-.. theorem:: sequence.contents_at
+.. definition:: sequence.contents_at
 
     Shorthand for referring to the contents at a sequence index
     ``ixₒ : fin (o + 1)``.
@@ -335,7 +332,7 @@ Implementation notes
     ``ixₒ : fin (o + 1)``.
 
 
-.. theorem:: sequence.end_board
+.. definition:: sequence.end_board
 
     The board which results from applying all ``move``\ s in the
     ``sequence``.
@@ -348,7 +345,7 @@ Implementation notes
     (i.e. contains the same piece or remains empty).
 
 
-.. theorem:: sequence.moves
+.. definition:: sequence.moves
 
     The ``ix₀``\ ’th ``move`` in the ``sequence``.
 
@@ -444,12 +441,12 @@ Implementation notes
     The ``finset`` of ``legal`` moves from a given square.
 
 
-.. theorem:: chess.board.moves_from
+.. definition:: chess.board.moves_from
 
     The ``finset`` of ``legal`` moves from a given square.
 
 
-.. theorem:: chess.board.moves_from.fintype
+.. definition:: chess.board.moves_from.fintype
 
 
 
@@ -459,66 +456,64 @@ Implementation notes
     The ``finset`` of ``legal`` moves from a given square.
 
 
-.. theorem:: chess.move.adjacent
+.. definition:: chess.move.adjacent
 
     Two squares ``pos`` and ``pos'`` are adjacent (i.e. have no square
     between them).
 
 
-.. theorem:: chess.move.adjacent.decidable_pred
+.. definition:: chess.move.adjacent.decidable_pred
 
 
 
 
-.. theorem:: chess.move.between
+.. definition:: chess.move.between
 
     The finite set of (presumably squares) between two elements of ``m`` (or
     ``n``).
 
 
-.. theorem:: chess.move.is_legal
+.. definition:: chess.move.is_legal
 
     A legal chess move.
 
 
-.. theorem:: chess.move.is_legal_decidable
+.. definition:: chess.move.is_legal_decidable
 
 
 
 
-.. theorem:: chess.move.knight_move
+.. definition:: chess.move.knight_move
 
     A legal knight move moves 2 squares in one direction and 1 in the other.
 
 
-.. theorem:: chess.move.knight_move.decidable_pred
+.. definition:: chess.move.knight_move.decidable_pred
 
 
 
 
-.. theorem:: chess.move.legal
+.. constant:: chess.move.legal
 
     A legal move is a ``move`` along with a proof that the move satisfies
     the rules of chess.
 
-
-.. theorem:: fintype
-
+.. definition:: fintype
 
 
 
-.. theorem:: chess.move.one_gap
+
+.. definition:: chess.move.one_gap
 
     Two squares ``pos`` and ``pos'`` have exactly one square between them.
 
 
-.. theorem:: chess.move.one_gap.decidable_pred
+.. definition:: chess.move.one_gap.decidable_pred
 
 
 
 
-.. theorem:: chess.move.sequence.legal
-
+.. constant:: chess.move.sequence.legal
 
 
 
@@ -534,122 +529,119 @@ Chess piece implementation.
 
 
 
-.. theorem:: chess.black_bishop
+.. definition:: chess.black_bishop
 
 
 
 
-.. theorem:: chess.black_king
+.. definition:: chess.black_king
 
 
 
 
-.. theorem:: chess.black_knight
+.. definition:: chess.black_knight
 
 
 
 
-.. theorem:: chess.black_pawn
+.. definition:: chess.black_pawn
 
 
 
 
-.. theorem:: chess.black_queen
+.. definition:: chess.black_queen
 
 
 
 
-.. theorem:: chess.black_rook
+.. definition:: chess.black_rook
 
 
 
 
-.. theorem:: chess.color
+.. constant:: chess.color
+
+
+
+.. definition:: chess.color.decidable_eq
 
 
 
 
-.. theorem:: chess.color.decidable_eq
+.. definition:: chess.color.fintype
 
 
 
 
-.. theorem:: chess.color.fintype
+.. constant:: chess.colored_piece
+
+
+
+.. definition:: chess.colored_piece.decidable_eq
 
 
 
 
-.. theorem:: chess.colored_piece
+.. definition:: chess.colored_piece.fintype
 
 
 
 
-.. theorem:: chess.colored_piece.decidable_eq
-
-
-
-
-.. theorem:: chess.colored_piece.fintype
-
-
-
-
-.. theorem:: chess.has_coe
+.. definition:: chess.has_coe
 
     “Forget” a piece’s color.
 
 
-.. theorem:: chess.has_repr
+.. definition:: chess.has_repr
 
 
 
 
-.. theorem:: chess.piece
+.. constant:: chess.piece
+
+
+
+.. definition:: decidable_eq
 
 
 
 
-.. theorem:: decidable_eq
+.. definition:: fintype
 
 
 
 
-.. theorem:: fintype
+.. definition:: chess.piece_repr
 
 
 
 
-.. theorem:: chess.piece_repr
+.. definition:: chess.white_bishop
 
 
 
 
-.. theorem:: chess.white_bishop
+.. definition:: chess.white_king
 
 
 
 
-.. theorem:: chess.white_king
+.. definition:: chess.white_knight
 
 
 
 
-.. theorem:: chess.white_knight
+.. definition:: chess.white_pawn
 
 
 
 
-.. theorem:: chess.white_pawn
+.. definition:: chess.white_queen
 
 
 
 
-.. theorem:: chess.white_queen
-
-
-
-
-.. theorem:: chess.white_rook
+.. definition:: chess.white_rook
 
 
 
@@ -718,7 +710,7 @@ Implementation details
 
 
 
-.. theorem:: matrix_to_playfield
+.. definition:: matrix_to_playfield
 
     A conversion function to turn a bare ``matrix`` into a ``playfield``. A
     ``matrix`` requires the dimensions to be finite.
@@ -737,7 +729,7 @@ Implementation details
     (0,1) (0,2) (1,0) (1,1) (1,2) (2,0) (2,1) (2,2)
 
 
-.. theorem:: playfield
+.. definition:: playfield
 
     A ``playfield m n ι`` represents a ``matrix (m × n) option ι``, which is
     a model for a ``m × n`` shaped game board where not every square is
@@ -749,7 +741,7 @@ Implementation details
     A ``pos : pf.occupied_positions`` can be used as a ``pos : m × n``.
 
 
-.. theorem:: playfield.decidable_pred
+.. definition:: playfield.decidable_pred
 
     The predicate that ``pf.occupied_at pos`` for some pos is decidable if
     the indices ``ix : ι`` are finite and decidably equal.
@@ -776,24 +768,24 @@ Implementation details
     a ``fintype``.
 
 
-.. theorem:: playfield.fintype
+.. definition:: playfield.fintype
 
 
 
 
-.. theorem:: playfield.fintype_occupied
+.. definition:: playfield.fintype_occupied
 
     When the ``playfield`` dimensions are all finite, the
     ``occupied_positions_set`` of all positions that are ``occupied_at`` is
     finite.
 
 
-.. theorem:: playfield.has_coe
+.. definition:: playfield.has_coe
 
 
 
 
-.. theorem:: playfield.has_mem
+.. definition:: playfield.has_mem
 
     A piece, identified by an index, is on the board, if there is any
     position such that the index at that position is the one we’re inquiring
@@ -802,7 +794,7 @@ Implementation details
     duplicated indices on the playfield. See “Implementation details”.
 
 
-.. theorem:: playfield.index_at
+.. definition:: playfield.index_at
 
     Extract the ``ix : ι`` that is at ``pf pos = some ix``.
 
@@ -888,7 +880,7 @@ Implementation details
     ``pf.index_at pos`` is precisely ``pf pos``.
 
 
-.. theorem:: playfield.index_equiv
+.. definition:: playfield.index_equiv
 
     Given a surjectivity condition of ``pf.index_at``, and an injectivity
     condition of ``pf.some_injective``, there is an explicit equivalence
@@ -896,7 +888,7 @@ Implementation details
     ``pf.occupied_positions``.
 
 
-.. theorem:: playfield.inhabited
+.. definition:: playfield.inhabited
 
     A ``playfield`` is by default ``inhabited`` by empty squares everywhere.
 
@@ -919,7 +911,7 @@ Implementation details
     empty at some ``pos : m × n``, then it is injective at that ``pos``.
 
 
-.. theorem:: playfield.move_piece
+.. definition:: playfield.move_piece
 
     Move an (optional) index from ``start_square`` to ``end_square`` on a
     ``playfield``, swapping the indices at those squares.
@@ -972,7 +964,7 @@ Implementation details
     ``end_square``
 
 
-.. theorem:: playfield.move_sequence
+.. definition:: playfield.move_sequence
 
     Make a sequence of ``move``\ s all at once.
 
@@ -1018,13 +1010,13 @@ Implementation details
     ``pf pos = none``, then that is equivalent to ``¬ pf.occupied_at pos``.
 
 
-.. theorem:: playfield.occ_set_decidable
+.. definition:: playfield.occ_set_decidable
 
     The predicate that ``λ p, p ∈ pf.occupied_position_set`` for some pos is
     decidable if the indices ``ix : ι`` are finite and decidably equal.
 
 
-.. theorem:: playfield.occupied_at
+.. definition:: playfield.occupied_at
 
     A wrapper to indicate that there is some ``ix : ι`` such that for a
     ``pf : playfield m n ι``, at ``pos : m × n``, ``pf pos = some ix``.
@@ -1066,7 +1058,7 @@ Implementation details
     A ``pf : playfield m n ι`` maps any occupied ``pos`` uniquely.
 
 
-.. theorem:: playfield.occupied_fintype
+.. definition:: playfield.occupied_fintype
 
     The ``occupied_positions`` of a ``pf : playfield m n ι`` are finite if
     the dimensions of the playfield and the indices are finite.
@@ -1088,18 +1080,18 @@ Implementation details
     occupied.
 
 
-.. theorem:: playfield.occupied_position_finset
+.. definition:: playfield.occupied_position_finset
 
     The ``finset`` of all positions that are ``occupied_at``, when all the
     dimensions of the ``playfield`` are ``fintype``.
 
 
-.. theorem:: playfield.occupied_positions
+.. definition:: playfield.occupied_positions
 
     The ``set`` of all positions that are ``occupied_at``.
 
 
-.. theorem:: playfield.occupied_positions.mk
+.. definition:: playfield.occupied_positions.mk
 
     Given some ``ix : ι`` such that for ``pf : playfield m n ι`` and
     ``pos : m × n``, ``pf pos = some ix``, we can subtype into
@@ -1131,24 +1123,24 @@ Implementation details
     ``pf``, given an injectivity condition via ``pf.some_injective``.
 
 
-.. theorem:: playfield.playfield_decidable_in
+.. definition:: playfield.playfield_decidable_in
 
 
 
 
-.. theorem:: playfield.playfield_repr_instance
+.. definition:: playfield.playfield_repr_instance
 
 
 
 
-.. theorem:: playfield.pos_from
+.. definition:: playfield.pos_from
 
     Given a surjectivity condition of ``pf.index_at``, and an injectivity
     condition of ``pf.some_injective``, the type there exists a
     ``pos : m × n' such that``\ pf pos = some ix`.
 
 
-.. theorem:: playfield.pos_from'
+.. definition:: playfield.pos_from'
 
     Given a surjectivity condition of ``pf.index_at``, and an injectivity
     condition of ``pf.some_injective``, we can retrieve the
@@ -1177,7 +1169,7 @@ Implementation details
     the coercion down to ``pos : m × n``.
 
 
-.. theorem:: playfield.pos_from_aux
+.. definition:: playfield.pos_from_aux
 
     A helper subtype definition describing all the positions that match an
     index.
@@ -1192,7 +1184,7 @@ Implementation details
     index.
 
 
-.. theorem:: playfield.pos_from_auxf
+.. definition:: playfield.pos_from_auxf
 
     A helper finset definition describing all the positions that match an
     index.
@@ -1277,12 +1269,12 @@ Implementation details
     ``move_piece``.
 
 
-.. theorem:: playfield.some_injective
+.. definition:: playfield.some_injective
 
     A ``playfield`` on which every index that appears, appears only once.
 
 
-.. theorem:: playfield.some_injective_decidable
+.. definition:: playfield.some_injective_decidable
 
     Explicitly state that the proposition that ``pf.some_injective`` is
     ``decidable``, when the ``ι`` is itself ``decidable_eq``.
@@ -1322,7 +1314,7 @@ Helpers that don’t currently fit elsewhere…
 
 
 
-.. theorem:: matrix_repr
+.. definition:: matrix_repr
 
     For a ``matrix`` ``X^(m' × n')`` where the ``X`` has a ``has_repr``
     instance itself, we can provide a ``has_repr`` for the matrix, using
@@ -1331,25 +1323,24 @@ Helpers that don’t currently fit elsewhere…
     likely through notation.
 
 
-.. theorem:: matrix_repr_instance
+.. definition:: matrix_repr_instance
 
 
 
 
-.. theorem:: option_wrap
+.. definition:: option_wrap
 
     Construct an ``option_wrapper`` term from a provided ``option X`` and
     the ``string`` that will override the ``has_repr.repr`` for ``none``.
 
 
-.. theorem:: option_wrapper
+.. constant:: option_wrapper
 
     An auxiliary wrapper for ``option X`` that allows for overriding the
     ``has_repr`` instance for ``option``, and rather, output just the value
     in the ``some`` and a custom provided ``string`` for ``none``.
 
-
-.. theorem:: vec_repr
+.. definition:: vec_repr
 
     For a “vector” ``X^n'`` represented by the type
     ``Π n' : ℕ, fin n' → X``, where the ``X`` has a ``has_repr`` instance
@@ -1358,12 +1349,12 @@ Helpers that don’t currently fit elsewhere…
     ``matrix``, likely through notation.
 
 
-.. theorem:: vec_repr_instance
+.. definition:: vec_repr_instance
 
 
 
 
-.. theorem:: wrapped_option_repr
+.. definition:: wrapped_option_repr
 
 
 
@@ -1373,7 +1364,7 @@ Helpers that don’t currently fit elsewhere…
 
 
 
-.. theorem:: vector.scanl
+.. definition:: vector.scanl
 
 
 
@@ -1460,12 +1451,12 @@ Solution:
 
 
 
-.. theorem:: ending_position
+.. definition:: ending_position
 
 
 
 
-.. theorem:: first_move
+.. definition:: first_move
 
 
 
@@ -1475,9 +1466,9 @@ Solution:
 
 
 
-.. theorem:: guarini_seq
+.. definition:: guarini_seq
 
 
 
 
-.. theorem:: starting_position
+.. definition:: starting_position
