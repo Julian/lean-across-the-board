@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Bump Lean and dependency versions
     steps:
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v2
       - name: Upgrade lean and dependencies
         uses: leanprover-contrib/lean-upgrade-action@master
         with:
