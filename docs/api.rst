@@ -1357,45 +1357,6 @@ Helpers that don’t currently fit elsewhere…
 
 
 
-.. definition:: vector.scanl
-
-
-
-.. theorem:: vector.scanl_cons
-
-
-
-
-.. theorem:: vector.scanl_head
-
-
-
-
-.. theorem:: vector.scanl_nil
-
-
-
-
-.. theorem:: vector.scanl_nth
-
-
-
-
-.. theorem:: vector.scanl_singleton
-
-
-
-
-.. theorem:: vector.scanl_val
-
-
-
-
-.. theorem:: vector.to_list_scanl
-
-
-
-
 ``guarini``
 ===========
 
