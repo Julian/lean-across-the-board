@@ -86,6 +86,15 @@ match (f.piece : chess.piece) with
 | _ := false
 end
 
+@[simp] def is_legal_knight_iff
+  {f : chess.move b}
+  (h_piece : knight = f.piece) :
+    f.is_legal ↔ knight_move f.start_square f.end_square := begin
+  unfold move.is_legal,
+  rw ←h_piece,
+  exact iff.rfl,
+end
+
 instance is_legal_decidable {f : chess.move b} : decidable f.is_legal := begin
   unfold is_legal,
   unfold_coes,
