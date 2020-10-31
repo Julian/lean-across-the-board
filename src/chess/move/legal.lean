@@ -129,17 +129,17 @@ namespace board
 variable (b)
 
 /-- The `finset` of `legal` moves from a given square. -/
-@[derive fintype]
-def moves_from (pos : m × n) : set (move.legal b) :=
-{x : move.legal b | x.start_square = pos}
+def moves_from (pos : m × n) : finset (move.legal b) :=
+{x : move.legal b | x.start_square = pos}.to_finset
 
 /-- The `finset` of `legal` moves from a given square. -/
 lemma moves_from_def (pos : m × n) :
-  b.moves_from pos = {x : move.legal b | x.start_square = pos} := rfl
+  b.moves_from pos = {x : move.legal b | x.start_square = pos}.to_finset := rfl
 
 /-- The `finset` of `legal` moves from a given square. -/
 @[simp] lemma mem_moves_from {pos : m × n} (x : move.legal b) :
-    x ∈ (b.moves_from pos) ↔ x.to_move.start_square = pos := iff.rfl
+    x ∈ (b.moves_from pos) ↔ x.to_move.start_square = pos :=
+by simp only [moves_from_def, set.mem_to_finset, set.mem_set_of_eq]
 
 end board
 
@@ -148,13 +148,13 @@ section bounds
 variable {pos : m × n}
 
 /-- There are 0 `legal` moves from an unoccupied square. -/
-lemma moves_from.unoccupied_zero
+lemma moves_from.unoccupied_empty
   (h_empty : ¬ b.contents.occupied_at pos . tactic.exact_dec_trivial) :
-    ∀ (x : move.legal b), x ∉ (b.moves_from pos) := begin
+    b.moves_from pos = ∅ := begin
+    rw finset.eq_empty_iff_forall_not_mem,
     intro x,
-    refine ne.elim _,
     by_contradiction h',
-    push_neg at h',
+    rw board.mem_moves_from at h',
     rw ←h' at h_empty,
     have h_occ := x.occupied_start,
     contradiction,
