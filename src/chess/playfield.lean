@@ -349,20 +349,20 @@ end decidable
 lemma coe_occ_val {pos : pf.occupied_positions} : (pos : m × n) = pos.val := rfl
 
 /--
-A `pos : pf.occupied_positions' has the property
+A `pos : pf.occupied_positions` has the property
 that there is an not-necessarily-unique `ix : ι` such that `pf pos = some ix`.
 -/
 lemma exists_of_occupied (pos : pf.occupied_positions) : pf.occupied_at pos :=
 pos.property
 
 /--
-A `pos : pf.occupied_positions' has the property
+A `pos : pf.occupied_positions` has the property
 that there is a necessarily-unique `ix : ι` such that `pf pos = some ix`.
 -/
 lemma exists_unique_of_occupied (pos : pf.occupied_positions) : ∃! ix : ι, pf pos = ix :=
 occupied_at_unique (pf.exists_of_occupied pos)
 
-/-- A `pos : pf.occupied_positions'` has the property that `pf pos` is occupied. -/
+/-- A `pos : pf.occupied_positions` has the property that `pf pos` is occupied. -/
 lemma occupied_is_some (pos : pf.occupied_positions) : (pf pos).is_some :=
 occupied_has_some.mpr pos.property
 
