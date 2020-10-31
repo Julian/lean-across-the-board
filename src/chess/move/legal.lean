@@ -86,7 +86,8 @@ match (f.piece : chess.piece) with
 | _ := false
 end
 
-@[simp] def is_legal_knight_iff
+/-- A legal knight move. -/
+@[simp] lemma is_legal_knight_iff
   {f : chess.move b}
   (h_piece : knight = f.piece) :
     f.is_legal ↔ knight_move f.start_square f.end_square := begin
@@ -112,13 +113,22 @@ variable (b)
 /--
 A legal move is a `move` along with a proof that the move satisfies the
 rules of chess.
+
+No inhabited instance because `move` is uninhabited.
 -/
-@[derive fintype]
+@[derive fintype, nolint has_inhabited_instance]
 structure legal extends chess.move b :=
 (legality: (is_legal to_move) . tactic.exact_dec_trivial)
 
 variables {o : ℕ}
 
+/--
+A legal sequence is a move `sequence` along with a proof that all sequential
+moves are legal.
+
+No inhabited instance because `sequence` is uninhabited.
+-/
+@[nolint has_inhabited_instance]
 structure sequence.legal extends chess.move.sequence m n ι chess.colored_piece o :=
 (legality: ∀ (i : fin o), is_legal (to_sequence.moves i) . tactic.exact_dec_trivial)
 
