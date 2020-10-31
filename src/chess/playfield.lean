@@ -241,18 +241,18 @@ by definition is the proposition that `pf.occupied_at pos`.
   pos ∈ pf.occupied_positions ↔ pf.occupied_at pos := iff.rfl
 
 /--
-The predicate that `λ p, p ∈ pf.occupied_position_set` for some pos is decidable
-if the indices `ix : ι` are finite and decidably equal.
+The predicate that `λ p, p ∈ pf.occupied_positions` for some pos is
+decidable if the indices `ix : ι` are finite and decidably equal.
 -/
-instance occ_set_decidable [fintype ι] [decidable_eq ι] :
+instance occcupied_positions_mem_decidable [fintype ι] [decidable_eq ι] :
   decidable_pred (pf.occupied_positions) :=
-playfield.decidable_pred (λ (pos : m × n), pf pos)
+occupied_at.decidable_pred (λ (pos : m × n), pf pos)
 
 variables [fintype m] [fintype n]
 
 /--
 When the `playfield` dimensions are all finite,
-the `occupied_positions_set` of all positions that are `occupied_at` is a `fintype`.
+the `occupied_positions`–all positions that are `occupied_at`–is a `fintype`.
 -/
 lemma finite_occupied : pf.occupied_positions.finite :=
 set.finite.of_fintype pf.occupied_positions
