@@ -232,6 +232,14 @@ variables (vs : vector α (n + 1)) (p : α → Prop) [decidable_pred p]
 
 @[simp] def prop_indicator (x : α) : (ℕ × ℕ) := ite (p x) (1, 0) (0, 1)
 
+@[simp] lemma fst_prop_indicator (x : α) :
+  prod.fst (prop_indicator p x) = ite (p x) 1 0 :=
+by { rw prop_indicator, split_ifs; refl }
+
+@[simp] lemma snd_prop_indicator (x : α) :
+  prod.snd (prop_indicator p x) = ite (p x) 0 1 :=
+by { rw prop_indicator, split_ifs; refl }
+
 def enum_prop' : vector ((ℕ × ℕ) × α) n :=
 vector.zip ((v.map (prop_indicator p)).scanl (+) 0).tail v
 
@@ -329,27 +337,73 @@ end
 lemma enum_prop_filter_eq_map_enum_from_filter' {m : ℕ} (h : v.filter_count p = m) :
   (v.filter p h).enum_prop' p = ((v.filter p h).enum_from' 1).map (prod.map (λ x, (x, 0)) id) :=
 begin
-  induction m with m hm generalizing n,
-  { simp only [eq_iff_true_of_subsingleton] },
-  { cases n,
-    { rw [filter_count_nil] at h,
-      contradiction },
-    { have : ∃ hd tl, v = hd ::ᵥ tl := ⟨v.head, v.tail, v.cons_head_tail.symm⟩,
-      obtain ⟨hd, tl, hv⟩ := this,
+  induction n with n hn generalizing m,
+  { simp only [filter_count_nil] at h,
+    subst h,
+    simp only [eq_iff_true_of_subsingleton] },
+  { cases m,
+    { simp only [eq_iff_true_of_subsingleton] },
+    { obtain ⟨hd, tl, hv⟩ : ∃ hd tl, v = hd ::ᵥ tl :=
+        ⟨v.head, v.tail, v.cons_head_tail.symm⟩,
+      simp_rw hv,
+      by_cases H : p hd,
+      { simp only [H, hn, map_cons, map_map, prod.map_comp_map,
+                   enum_from_eq_enum_add', enum_from_cons', eq_split,
+                   true_and, cons_head, cons_tail, prop_indicator, if_true,
+                   id.def, eq_self_iff_true, function.comp.right_id,
+                   prod.map_mk, enum_prop_cons', filter_cons_of_pos],
+        congr' 1,
+        ext;
+        simp only [prod.mk_add_mk, prod_map, function.comp_app, add_assoc] },
+      { simp only [H, filter_cons_of_neg, not_false_iff, hn] } } }
+end
+
+@[simp] lemma filter_count_of_map_snd_enum_prop' :
+  (v.enum_prop' p).filter_count (λ xpair, p xpair.snd) = v.filter_count p :=
+by rw [←filter_count_of_map, enum_prop_snd']
+
+lemma map_filter_enum_prop_eq_enum_from_filter' {m : ℕ} (h : v.filter_count p = m) :
+  ((v.enum_prop' p).filter (λ xpair, p xpair.snd)
+    (by rw [filter_count_of_map_snd_enum_prop', h])).map (prod.map prod.fst id) =
+  (v.filter p h).enum_from' 1 :=
+begin
+  induction n with n hn generalizing m,
+  { simp only [filter_count_nil] at h,
+    subst h,
+    simp only [eq_iff_true_of_subsingleton] },
+  { cases m,
+    { simp only [eq_iff_true_of_subsingleton] },
+    { obtain ⟨hd, tl, hv⟩ : ∃ hd tl, v = hd ::ᵥ tl :=
+        ⟨v.head, v.tail, v.cons_head_tail.symm⟩,
       simp_rw hv,
       by_cases H : p hd,
       { have h' : tl.filter_count p = m,
         { rwa [hv, filter_count_cons_of_pos _ _ H, nat.succ_inj'] at h, },
-        simp only [H, hm, map_cons, map_map, prod.map_comp_map, enum_from_eq_enum_add', eq_split,
-                   true_and, cons_head, cons_tail, prop_indicator, if_true, id.def,
-                   eq_self_iff_true, function.comp.right_id, enum_cons', enum_prop_cons',
-                   filter_cons_of_pos, prod.map_mk],
-        congr' 1,
-        ext;
-        simp only [add_comm, nat.succ_eq_add_one, prod.mk_add_mk, prod_map, function.comp_app] },
-      { sorry },
-    },
-  },
+        have prod_comm : prod.map prod.fst id ∘ (prod.map ((+) (1, 0)) id) = prod.map ((+) 1) id ∘ (prod.map prod.fst id),
+          { funext, simp only [prod_map, function.comp_app, prod.fst_add] },
+        have he : ∀ {n' : ℕ} (v' : vector α n') (k l : ℕ), v'.enum_from' (k + l) = (v'.enum_from' l).map (prod.map ((+) k) id),
+          { intros n' v' k l,
+            have : ((+) k) ∘ ((+) l) = ((+) (k + l)),
+            { intros, funext, rw add_assoc },
+            simp only [enum_from_eq_enum_add', map_map, prod.map_comp_map, this,
+                       function.comp.right_id] },
+        have hp : p (prop_indicator p hd, hd).snd,
+          { simp only [H] },
+        simp only [H, hp, map_cons, prop_indicator, if_true,
+                   filter_count_of_map_snd_enum_prop', id.def,
+                   add_left_inj, enum_prop_cons', filter_cons_of_pos,
+                   prod.map_mk, enum_from_cons'],
+        congr,
+        rw [filter_map, map_map, prod_comm, ←map_map, he, ←hn],
+        congr },
+      { have prod_comm : prod.map prod.fst id ∘ (prod.map ((+) (0, 1)) id) = prod.map prod.fst id,
+          { funext,
+            simp only [prod_map, function.comp_app, prod.fst_add, id.def, zero_add] },
+        simp only [H, ←hn, filter_map, map_map, prop_indicator,
+                   filter_cons_of_neg, filter_count_of_map_snd_enum_prop',
+                   if_false, not_false_iff, enum_prop_cons'],
+        rw prod_comm,
+        congr } } }
 end
 
 end enum_prop

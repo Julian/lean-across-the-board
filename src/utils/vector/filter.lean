@@ -2,7 +2,7 @@ import data.matrix.notation
 import data.vector2
 import utils.vector
 
-variables {α : Type*} {n m : ℕ}
+variables {α β : Type*} {n m : ℕ}
 variables (l : list α) (v : vector α n) (vn : vector α 0) (vs : vector α (n + 1)) (x : α)
 variables (p : α → Prop)
 
@@ -142,6 +142,10 @@ lemma filter_count_imp_tail (hn : vs.filter_count p = n + 1) :
 by rw [←filter_count_iff, filter_count_tail _ hn (le_refl _),
        nat.add_succ_sub_one, add_zero]
 
+lemma filter_count_of_map (p : β → Prop) [decidable_pred p] (f : α → β) :
+  (v.map f).filter_count p = v.filter_count (λ x, p (f x)) :=
+by simp only [filter_count_def, list.filter_of_map, list.length_map, to_list_map]
+
 variable (p)
 
 /--
@@ -170,14 +174,14 @@ lemma filter_cons_of_pos' (hx : p x) :
 by simp only [filter_def, list.filter, hx, cons, and_self,
               to_list_cons, if_true, eq_self_iff_true, subtype.mk_eq_mk]
 
-lemma filter_cons_of_neg' (hm : (x ::ᵥ v).filter_count p = m + 1) (hx : ¬ p x) :
-  (x ::ᵥ v).filter p hm = v.filter p (filter_count_cons_of_neg v x hx ▸ hm) :=
-by simp only [filter_def, list.filter, hx, to_list_cons, subtype.mk_eq_mk, if_false]
-
 @[simp] lemma filter_cons_of_pos (hx : p x) (hm : (x ::ᵥ v).filter_count p = m + 1) :
   (x ::ᵥ v).filter p hm =
   x ::ᵥ v.filter p (by simpa only [hx, add_left_inj, filter_count_cons_of_pos] using hm) :=
 by rw filter_cons_of_pos' _ _ _ hx
+
+@[simp] lemma filter_cons_of_neg (hm : (x ::ᵥ v).filter_count p = m + 1) (hx : ¬ p x) :
+  (x ::ᵥ v).filter p hm = v.filter p (filter_count_cons_of_neg v x hx ▸ hm) :=
+by simp only [filter_def, list.filter, hx, to_list_cons, subtype.mk_eq_mk, if_false]
 
 lemma filter_head_tail (hm : vs.filter_count p = m + 1) :
   (vs.head ::ᵥ vs.tail).filter p (by simp [hm]) = vs.filter p hm :=
@@ -263,6 +267,27 @@ begin
       simp only [hx, true_and],
       apply filter_count_imp_tail,
       simp only [filter_count_filter] } }
+end
+
+lemma filter_map {p : β → Prop} [decidable_pred p]
+  (f : α → β) (hm : (v.map f).filter_count p = m) :
+  -- map f (v.filter (p ∘ f) _) = ((v.map f).filter p _) :=
+  (v.map f).filter p hm = map f (v.filter (λ x, p (f x))
+    ((filter_count_of_map v p f) ▸ hm)) :=
+begin
+  induction n with n hn generalizing m,
+  { simp at hm,
+    symmetry' at hm,
+    subst hm,
+    simp only [eq_iff_true_of_subsingleton] },
+  { cases m,
+    { simp only [eq_iff_true_of_subsingleton] },
+    { obtain ⟨hd, tl, hv⟩ : ∃ hd tl, v = hd ::ᵥ tl :=
+        ⟨v.head, v.tail, v.cons_head_tail.symm⟩,
+      simp_rw hv,
+      by_cases H : p (f hd),
+      { simp only [map_cons, H, hn, filter_cons_of_pos] },
+      { simp only [map_cons, H, hn, filter_cons_of_neg, not_false_iff] } } }
 end
 
 end vector
