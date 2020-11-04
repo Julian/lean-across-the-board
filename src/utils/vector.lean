@@ -9,8 +9,20 @@ variables {α β γ : Type*} {n m : ℕ}
 variables (v : vector α n) (vn : vector α 0) (vs : vector α (n + 1))
 variables (x : α)
 
+@[simp] lemma reverse_reverse : v.reverse.reverse = v :=
+vector.eq _ _ (list.reverse_reverse v.to_list ▸ to_list_reverse)
+
+lemma reverse_involutive : function.involutive (@reverse n α) :=
+reverse_reverse
+
 lemma map_map {f : α → β} {g : β → γ} : (v.map f).map g = v.map (g ∘ f) :=
 by { apply vector.eq, simp only [to_list_map, list.map_map] }
+
+@[simp] lemma head_map {f : α → β} : (vs.map f).head = f vs.head :=
+by { rw [←nth_zero, nth_map, nth_zero] }
+
+@[simp] lemma tail_map {f : α → β} : (vs.map f).tail = vs.tail.map f :=
+by rw [←cons_head_tail vs, map_cons, cons_tail, cons_tail]
 
 @[simp] lemma to_list_nil' : vn.to_list = [] :=
 begin
@@ -46,6 +58,14 @@ by { simpa only }
 @[simp] lemma cast_id {h : n = n} : v.cast h = v :=
 by { apply vector.eq, simp only [to_list_cast] }
 
+@[simp] lemma cast_nil {h : 0 = n} : nil.cast h = ⟨@list.nil α, by simp only [h, list.length]⟩ := rfl
+
+lemma map_cast {m : ℕ} {f : α → β} (h : n = m) : (v.cast h).map f = (v.map f).cast h :=
+vector.eq _ _ (by simp only [to_list_map, to_list_cast])
+
+@[simp] lemma cast_cons {h : n + 1 = m + 1} : (x::ᵥv).cast h = x::ᵥv.cast (nat.succ.inj h) :=
+vector.eq _ _ (by simp only [to_list_cons, eq_self_iff_true, and_self, to_list_cast])
+
 lemma cons_append (v : vector α n) (v' : vector α m) :
   x ::ᵥ (v.append v') = ((x ::ᵥ v).append v').cast (nat.succ_add_eq_succ_add _ _) :=
 begin
@@ -74,12 +94,12 @@ def snoc : vector α (n + 1) :=
 lemma snoc_def : v.snoc x = ⟨v.to_list ++ [x],
                              by simp only [list.length_append, list.length, to_list_length]⟩ := rfl
 
-@[simp] lemma snoc_nil : nil.snoc x = x ::ᵥ nil := rfl
+lemma snoc_nil' : nil.snoc x = x ::ᵥ nil := rfl
 
-@[simp] lemma snoc_nil' : vn.snoc x = x ::ᵥ vn :=
+@[simp] lemma snoc_nil : vn.snoc x = x ::ᵥ vn :=
 begin
   have : vn = nil, by simp only [eq_iff_true_of_subsingleton],
-  simp only [this, snoc_nil],
+  simp only [this, snoc_nil']
 end
 
 @[simp] lemma to_list_snoc : (v.snoc x).to_list = v.to_list ++ [x] := rfl
@@ -101,6 +121,11 @@ begin
              eq_self_iff_true, to_list_snoc, and_self],
 end
 
+@[simp] lemma head_snoc : (vs.snoc x).head = vs.head :=
+by { rw [←cons_head_tail vs, snoc_cons_comm], simp only [cons_head] }
+
+lemma tail_snoc : (vs.snoc x).tail = vs.tail.snoc x :=
+by { rw [←cons_head_tail vs, snoc_cons_comm], simp only [cons_tail] }
 
 def init : vector α (n - 1) :=
 ⟨v.to_list.init, by simp only [list.length_init, to_list_length]⟩
@@ -125,6 +150,9 @@ begin
     simp only [hn, to_list_cons, to_list_init, list.init_cons, true_and, eq_self_iff_true],
     simp only [←to_list_cons, ←to_list_init, hn] },
 end
+
+@[simp] lemma head_init {v : vector α (n + 2)} : v.init.head = v.head :=
+by { rw ←cons_head_tail v, simp only [cons_head, init_cons] }
 
 lemma init_append (v : vector α n) (v' : vector α (m + 1)) :
   (v.append v').init = v.append v'.init :=
@@ -166,11 +194,99 @@ end
 begin
   induction n with n hn,
   { ext i,
-    have hn : vs.init = nil := by simp only [eq_iff_true_of_subsingleton],
     have hi : i = 0 := by simp only [eq_iff_true_of_subsingleton],
-    simpa only [hi, nth_cons_zero, snoc_nil'] },
+    simpa only [hi, nth_cons_zero, snoc_nil] },
   { rw ←cons_head_tail vs,
     simp only [snoc_cons_comm, hn, last_cons, init_cons] },
+end
+
+section scanl
+
+variables {f : β → α → β} {b : β}
+
+@[simp] lemma scanl_tail : (scanl f b vs).tail = scanl f (f b vs.head) vs.tail :=
+by rw [←cons_head_tail vs, cons_head, cons_tail, scanl_cons, tail_cons]
+
+@[simp] lemma scanl_nil' {vn : vector α 0} : vn.scanl f b = b::ᵥnil :=
+begin
+  have : vn = nil, by simp,
+  simp [this],
+end
+
+@[simp] lemma scanl_snoc : (v.snoc x).scanl f b = (v.scanl f b).snoc (f (v.scanl f b).last x) :=
+begin
+  induction n with n hn generalizing b,
+  { simp only [snoc_cons_comm, cons_head, scanl_nil', last_nil, snoc_nil, scanl_singleton] },
+  { rw ←cons_head_tail v,
+    simp only [snoc_cons_comm, hn, last_cons, scanl_cons] }
+end
+
+@[simp] lemma scanl_init : vs.init.scanl f b = (vs.scanl f b).init :=
+begin
+  induction n with n hn generalizing b,
+  { simp only [scanl_nil', init_singleton, scanl_singleton, init_cons] },
+  { rw ←cons_head_tail vs,
+    simp only [hn, scanl_cons, init_cons] },
+end
+
+lemma scanl_assoc (f) [is_associative α f] (y : α) : v.scanl f (f x y) = (v.scanl f y).map (f x) :=
+begin
+  apply ext,
+  apply fin.induction,
+  { simp only [nth_zero, scanl_head, head_map] },
+  { intros i h,
+    simp only [h, scanl_nth, nth_map],
+    rw @is_associative.assoc _ f },
+end
+
+lemma scanl_mul [monoid α] : v.scanl (*) x = (v.scanl (*) (1 : α)).map ((*) x) :=
+begin
+  cases n,
+  { simp only [map_cons, scanl_nil', mul_one, map_nil] },
+  { rw ←cons_head_tail v,
+    simp only [scanl_assoc, map_cons, mul_one, one_mul, scanl_cons] }
+end
+
+lemma scanl_add [add_monoid α] : v.scanl (+) x = (v.scanl (+) (0 : α)).map ((+) x) :=
+begin
+  cases n,
+  { simp only [map_cons, scanl_nil', add_zero, map_nil] },
+  { rw ←cons_head_tail v,
+    simp only [scanl_assoc, map_cons, add_zero, zero_add, scanl_cons] }
+end
+
+end scanl
+
+variables {v vs x}
+
+lemma prop_distribute {p : α → Prop} :
+  p x ∧ (∀ i, p (v.nth i)) ↔ ∀ i, p ((x ::ᵥ v).nth i) :=
+begin
+  split,
+    { rintro ⟨hx, ht⟩ i,
+      refine fin.cases _ _ i,
+      { simpa only [nth_cons_zero] using hx },
+      { simpa only [nth_cons_succ] using ht } },
+    { intro h,
+      split,
+      { simpa only [nth_cons_zero] using h 0 },
+      { intro i,
+        simpa only [nth_cons_succ] using h i.succ } }
+end
+
+lemma prop_distribute' {p : α → Prop} :
+  (∀ i, p (vs.nth i)) ↔ p vs.head ∧ (∀ i', p (vs.tail.nth i')) :=
+begin
+  split,
+  { intro h,
+    split,
+    { simpa only [nth_zero] using h 0 },
+    { intro i,
+      simpa only [nth_tail] using h i.succ } },
+  { rintro ⟨hx, ht⟩ i,
+    refine fin.cases _ _ i,
+    { simpa only [nth_zero] using hx },
+    { simpa only [nth_tail] using ht} },
 end
 
 end vector

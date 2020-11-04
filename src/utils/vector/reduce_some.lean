@@ -1,4 +1,5 @@
 import utils.vector.filter
+import utils.vector.enum
 
 variables {α : Type*} {n m : ℕ} (v : vector (option α) n)
 

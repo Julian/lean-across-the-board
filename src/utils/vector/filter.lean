@@ -1,5 +1,6 @@
 import data.matrix.notation
 import data.vector2
+import utils.vector
 
 variables {α : Type*} {n m : ℕ}
 variables (l : list α) (v : vector α n) (vn : vector α 0) (vs : vector α (n + 1)) (x : α)
@@ -8,36 +9,6 @@ variables (p : α → Prop)
 open vector
 
 namespace vector
-
-lemma prop_distribute :
-  p x ∧ (∀ i, p (v.nth i)) ↔ ∀ i, p ((x ::ᵥ v).nth i) :=
-begin
-  split,
-    { rintro ⟨hx, ht⟩ i,
-      refine fin.cases _ _ i,
-      { simpa only [nth_cons_zero] using hx },
-      { simpa only [nth_cons_succ] using ht } },
-    { intro h,
-      split,
-      { simpa only [nth_cons_zero] using h 0 },
-      { intro i,
-        simpa only [nth_cons_succ] using h i.succ } }
-end
-
-lemma prop_distribute' :
-  (∀ i, p (vs.nth i)) ↔ p vs.head ∧ (∀ i', p (vs.tail.nth i')) :=
-begin
-  split,
-  { intro h,
-    split,
-    { simpa only [nth_zero] using h 0 },
-    { intro i,
-      simpa only [nth_tail] using h i.succ } },
-  { rintro ⟨hx, ht⟩ i,
-    refine fin.cases _ _ i,
-    { simpa only [nth_zero] using hx },
-    { simpa only [nth_tail] using ht} },
-end
 
 variables [decidable_pred p]
 
@@ -70,6 +41,10 @@ by simp only [cons_head_tail]
 lemma filter_count_cons_of_pos (hx : p x) :
   (x ::ᵥ v).filter_count p = v.filter_count p + 1 :=
 by simp only [hx, filter_count_cons, if_true]
+
+lemma filter_count_cons_of_neg (hx : ¬ p x) :
+  (x ::ᵥ v).filter_count p = v.filter_count p :=
+by simp only [hx, filter_count_cons, if_neg, add_zero, not_false_iff]
 
 variable (p)
 
@@ -194,6 +169,10 @@ lemma filter_cons_of_pos' (hx : p x) :
   x ::ᵥ v.filter p hm = (x ::ᵥ v).filter p (by rw [filter_count_cons, if_pos hx, hm]) :=
 by simp only [filter_def, list.filter, hx, cons, and_self,
               to_list_cons, if_true, eq_self_iff_true, subtype.mk_eq_mk]
+
+lemma filter_cons_of_neg' (hm : (x ::ᵥ v).filter_count p = m + 1) (hx : ¬ p x) :
+  (x ::ᵥ v).filter p hm = v.filter p (filter_count_cons_of_neg v x hx ▸ hm) :=
+by simp only [filter_def, list.filter, hx, to_list_cons, subtype.mk_eq_mk, if_false]
 
 @[simp] lemma filter_cons_of_pos (hx : p x) (hm : (x ::ᵥ v).filter_count p = m + 1) :
   (x ::ᵥ v).filter p hm =

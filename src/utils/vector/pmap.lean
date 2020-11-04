@@ -1,4 +1,5 @@
 import data.vector2
+import utils.vector
 
 variables {α β γ : Type*} {n : ℕ}
 variables (v : vector α n) (vn : vector α 0) (vs : vector α (n + 1))
@@ -10,36 +11,6 @@ namespace vector
 
 variables {v vn vs x}
 variables {p q : α → Prop}
-
-lemma prop_distribute :
-  p x ∧ (∀ i, p (v.nth i)) ↔ ∀ i, p ((x ::ᵥ v).nth i) :=
-begin
-  split,
-    { rintro ⟨hx, ht⟩ i,
-      refine fin.cases _ _ i,
-      { simpa only [nth_cons_zero] using hx },
-      { simpa only [nth_cons_succ] using ht } },
-    { intro h,
-      split,
-      { simpa only [nth_cons_zero] using h 0 },
-      { intro i,
-        simpa only [nth_cons_succ] using h i.succ } }
-end
-
-lemma prop_distribute' :
-  (∀ i, p (vs.nth i)) ↔ p vs.head ∧ (∀ i', p (vs.tail.nth i')) :=
-begin
-  split,
-  { intro h,
-    split,
-    { simpa only [nth_zero] using h 0 },
-    { intro i,
-      simpa only [nth_tail] using h i.succ } },
-  { rintro ⟨hx, ht⟩ i,
-    refine fin.cases _ _ i,
-    { simpa only [nth_zero] using hx },
-    { simpa only [nth_tail] using ht} },
-end
 
 lemma nth_of_mem (h : x ∈ v.to_list) : ∃ i, v.nth i = x :=
 mem_iff_nth.mp h
@@ -74,6 +45,11 @@ lemma pmap_congr {f : Π (x : α), p x → β} {g : Π (x : α), q x → β} {H�
   v.pmap f H₁ = v.pmap g H₂ :=
 vector.eq _ _ (v.to_list.pmap_congr h)
 
+lemma pmap_congr' (v v' : vector α n) {f : Π (x : α), p x → β} {g : Π (x : α), q x → β} {H₁ H₂}
+  (hv : v = v') (h : ∀ x h₁ h₂, f x h₁ = g x h₂) :
+  v.pmap f H₁ = v'.pmap g H₂ :=
+by { subst hv, apply pmap_congr v h }
+
 lemma map_pmap (g : β → γ) (f : Π (x : α), p x → β) (H) :
   (v.pmap f H).map g = v.pmap (λ a h, g (f a h)) H :=
 vector.eq _ _ (list.map_pmap g f v.to_list (forall_mem_to_list_iff.mpr H))
@@ -96,6 +72,16 @@ by simpa only [pmap_def, to_list_cons]
 | ⟨[],     hl⟩ _ := by contradiction
 | ⟨x :: l, hl⟩ _ := rfl
 
+lemma pmap_head_tail {f : Π (x : α), p x → β} {h} (hx : p vs.head) :
+  vs.pmap f h = f vs.head hx ::ᵥ vs.tail.pmap f (prop_distribute'.mp h).right :=
+begin
+  have : ∃ hd tl, vs = hd ::ᵥ tl := ⟨vs.head, vs.tail, (cons_head_tail vs).symm⟩,
+  obtain ⟨hd, tl, hv⟩ := this,
+  subst hv,
+  have hx' : p hd := by simpa only [cons_head] using hx,
+  simpa only [hx', cons_head, cons_tail, pmap_cons]
+end
+
 @[simp] lemma nth_pmap_cons {f : Π (x : α), p x → β} {H i} :
   (v.pmap f H).nth i = f (v.nth i) (H i) :=
 begin
@@ -110,6 +96,16 @@ begin
     { rw pmap_cons _ hx,
       simp_rw nth_cons_succ,
       apply hn } }
+end
+
+lemma pmap_map (f : α → α) (g : Π (x : α), p x → β) (H H') :
+  (v.map f).pmap g H = v.pmap (λ x, g (f x)) H' :=
+begin
+  cases n,
+  { simp only [eq_iff_true_of_subsingleton] },
+  { apply ext,
+    intro i,
+    simp only [nth_pmap_cons, nth_map] },
 end
 
 end pmap
