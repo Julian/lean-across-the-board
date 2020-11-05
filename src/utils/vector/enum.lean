@@ -61,7 +61,7 @@ by simp only [eq_iff_true_of_subsingleton]
 @[simp] lemma nth_enum (i : fin n) : v.enum.nth i = (i, v.nth i) :=
 by simp only [enum_def, nth_of_fn]
 
-@[simp] lemma enum_cons_head : (x ::ᵥ v).enum.head = (0, x) :=
+lemma enum_cons_head : (x ::ᵥ v).enum.head = (0, x) :=
 begin
   rw [←option.some.inj_eq, ←nth_zero, enum_def, nth_eq_nth_le],
   simp only [fin.val_zero', nth_cons_zero,
@@ -93,7 +93,7 @@ by { apply vector.eq, simp only [to_list_enum', list.enum_map_snd, to_list_map] 
 @[simp] lemma enum_nil' : vn.enum' = nil :=
 by simp only [eq_iff_true_of_subsingleton]
 
-@[simp] lemma enum_cons_head' : (x ::ᵥ v).enum'.head = (0, x) :=
+lemma enum_cons_head' : (x ::ᵥ v).enum'.head = (0, x) :=
 begin
   rw [←option.some.inj_eq, ←nth_zero, enum_def', nth_eq_nth_le],
   simp only [←list.nth_le_nth, option.map_some, list.nth, fin.val_zero',
@@ -182,7 +182,7 @@ by simp only [enum_from_eq_enum_add', map_map, prod.map_snd', function.comp.left
 @[simp] lemma enum_from_nil' : vn.enum_from' k = nil :=
 by simp only [eq_iff_true_of_subsingleton]
 
-@[simp] lemma enum_from_cons_head' : ((x ::ᵥ v).enum_from' k).head = (k, x) :=
+lemma enum_from_cons_head' : ((x ::ᵥ v).enum_from' k).head = (k, x) :=
 by simp only [enum_from_eq_enum_add', map_cons, cons_head, add_zero,
               id.def, enum_cons', prod.map_mk]
 
@@ -232,11 +232,11 @@ variables (vs : vector α (n + 1)) (p : α → Prop) [decidable_pred p]
 
 @[simp] def prop_indicator (x : α) : (ℕ × ℕ) := ite (p x) (1, 0) (0, 1)
 
-@[simp] lemma fst_prop_indicator (x : α) :
+lemma fst_prop_indicator (x : α) :
   prod.fst (prop_indicator p x) = ite (p x) 1 0 :=
 by { rw prop_indicator, split_ifs; refl }
 
-@[simp] lemma snd_prop_indicator (x : α) :
+lemma snd_prop_indicator (x : α) :
   prod.snd (prop_indicator p x) = ite (p x) 0 1 :=
 by { rw prop_indicator, split_ifs; refl }
 
@@ -245,21 +245,21 @@ vector.zip ((v.map (prop_indicator p)).scanl (+) 0).tail v
 
 variable {p}
 
-def enum_prop_def' :
+lemma enum_prop_def' :
   v.enum_prop' p = vector.zip ((v.map (prop_indicator p)).scanl (+) 0).tail v := rfl
 
-@[simp] def to_list_enum_prop' :
+@[simp] lemma to_list_enum_prop' :
   (enum_prop' v p).to_list = (vector.zip ((v.map (prop_indicator p)).scanl (+) 0).tail v).to_list := rfl
 
-@[simp] def enum_prop_nil' : enum_prop' nil p = nil := rfl
+@[simp] lemma enum_prop_nil' : enum_prop' nil p = nil := rfl
 
-@[simp] def enum_prop_head' : (enum_prop' vs p).head = (prop_indicator p vs.head, vs.head) :=
+@[simp] lemma enum_prop_head' : (enum_prop' vs p).head = (prop_indicator p vs.head, vs.head) :=
 begin
   rw ←cons_head_tail vs,
   simp only [enum_prop_def', scanl_head, zip_head, head_map, scanl_tail, zero_add]
 end
 
-@[simp] def enum_prop_cons' : (enum_prop' (x ::ᵥ v) p) = (prop_indicator p x, x) ::ᵥ
+@[simp] lemma enum_prop_cons' : (enum_prop' (x ::ᵥ v) p) = (prop_indicator p x, x) ::ᵥ
   (v.enum_prop' p).map (prod.map ((+) (prop_indicator p x)) id) :=
 begin
   simp only [enum_prop_def', map_cons, cons_tail, map_zip, scanl_cons, zero_add, map_id],
@@ -269,13 +269,13 @@ begin
     simp only [cons_tail, zip_cons, cons_head_tail, scanl_cons, zero_add, scanl_assoc] },
 end
 
-@[simp] def enum_prop_fst' : (enum_prop' v p).map prod.fst = ((v.map (prop_indicator p)).scanl (+) 0).tail :=
+@[simp] lemma enum_prop_fst' : (enum_prop' v p).map prod.fst = ((v.map (prop_indicator p)).scanl (+) 0).tail :=
 by rw [enum_prop_def', map_fst_zip]
 
-@[simp] def enum_prop_snd' : (enum_prop' v p).map prod.snd = v :=
+@[simp] lemma enum_prop_snd' : (enum_prop' v p).map prod.snd = v :=
 by rw [enum_prop_def', map_snd_zip]
 
-@[simp] def enum_prop_tail' : (enum_prop' vs p).tail = (enum_prop' vs.tail p).map (
+@[simp] lemma enum_prop_tail' : (enum_prop' vs p).tail = (enum_prop' vs.tail p).map (
   prod.map ((+) (prop_indicator p vs.head)) id) :=
 begin
   rw [←cons_head_tail vs, enum_prop_cons'],
