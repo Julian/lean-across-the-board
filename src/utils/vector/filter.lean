@@ -137,6 +137,39 @@ begin
       exact h.right } }
 end
 
+lemma filter_count_complete : v.filter_count p + v.filter_count (not ∘ p) = n :=
+begin
+  induction n with n hn,
+  { simp only [filter_count_nil] },
+  { rw [←cons_head_tail v],
+    simp_rw [←hn v.tail],
+    by_cases h : p v.head,
+    { simp only [h, nat.succ_eq_add_one, add_assoc, add_comm, if_true,
+                 filter_count_cons, function.comp_app, not_true, if_false, zero_add] },
+    { simp [-cons_head_tail, h, nat.succ_eq_add_one, ←add_assoc, add_comm] } },
+end
+
+lemma filter_count_flip {m : ℕ} (h : m ≤ n) : v.filter_count p = m ↔ v.filter_count (not ∘ p) = (n - m) :=
+begin
+  have : v.filter_count p + v.filter_count (not ∘ p) = n := filter_count_complete v,
+  split,
+  { intro H,
+    symmetry' at this,
+    rw [H, add_comm, ←(nat.sub_eq_iff_eq_add h)] at this,
+    rw ←this },
+  { intro H,
+    symmetry' at H,
+    simpa only [nat.sub_eq_iff_eq_add h, ←this, add_comm, add_left_inj] using H },
+end
+
+lemma filter_count_flip' {m : ℕ} (h : m ≤ n) : v.filter_count (not ∘ p) = m ↔ v.filter_count p = (n - m) :=
+begin
+  have : (not ∘ not ∘ p) = p,
+    { funext, simp only [not_not, function.comp_app] },
+  simp_rw [filter_count_flip _ h, this],
+  convert iff.rfl
+end
+
 lemma filter_count_imp_tail (hn : vs.filter_count p = n + 1) :
   ∀ i, p (vs.tail.nth i) :=
 by rw [←filter_count_iff, filter_count_tail _ hn (le_refl _),
@@ -271,7 +304,6 @@ end
 
 lemma filter_map {p : β → Prop} [decidable_pred p]
   (f : α → β) (hm : (v.map f).filter_count p = m) :
-  -- map f (v.filter (p ∘ f) _) = ((v.map f).filter p _) :=
   (v.map f).filter p hm = map f (v.filter (λ x, p (f x))
     ((filter_count_of_map v p f) ▸ hm)) :=
 begin
