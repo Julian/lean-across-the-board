@@ -50,6 +50,15 @@ def b₂ {p p' q q' r r' : chess.colored_piece} : chess.board _ _ _ _ :=
       ![__, __, __, __, 2 , 4 ]
     ] }
 
+def b₃ {p p' q q' r r' : chess.colored_piece} : chess.board _ _ _ _ :=
+  { chess.board .
+    pieces := ![p, p', q, q', r, r'],
+    contents := PFL [
+      [__, __, 0 , 5 , __, __],
+      [1 , __, 3 , __, __, __],
+      [__, __, __, __, 2 , 4 ]
+    ] }
+
 end board
 
 section move

@@ -92,9 +92,14 @@ def matrix_to_playfield [fintype m] [fintype n]
   (M : matrix m n (option ι)) : playfield m n ι :=
 λ ⟨x, y⟩, M x y
 
+def lists_to_playfield
+  (L : list (list (option ι))) : playfield (fin L.length) (fin ((L.map list.length).foldl max 0)) ι :=
+λ xpair, do { lx ← L.nth xpair.fst, y ← lx.nth xpair.snd, y }
+
 -- Provide a short notation to be used for `playfield` construction when
 -- using matrix notation
 notation `PF` M := matrix_to_playfield M
+notation `PFL` L := lists_to_playfield L
 
 /--
 A `playfield` is by default `inhabited` by empty squares everywhere.
@@ -433,7 +438,7 @@ given by `pf.index_at pos` is precisely `pf pos`, in iff form.
 For a `pos : m × n`, and the hypothesis that `h : pf pos = some ix`,
 the index given by `pf.index_at (occupied_positions.mk _ h)` is precisely `ix`.
 -/
-@[simp] lemma index_at_mk {pos : m × n} {ix : ι} {h : pf pos = some ix} :
+@[simp] lemma index_at_mk {pos : m × n} {ix : ι} (h : pf pos = some ix) :
 pf.index_at (occupied_positions.mk _ h) = ix :=
 begin
   apply option.some.inj,
@@ -455,6 +460,12 @@ in existential format, operating on the `pf.occupied_positions` subtype.
 -/
 lemma index_at_exists' : ∃ (pos' : pf.occupied_positions), pf pos' = some (pf.index_at pos) :=
 ⟨pos, (index_at_some pos).symm⟩
+
+lemma index_at_of_exists (ix) (h : ∃ pos, pf pos = some ix) : ∃ pos', pf.index_at pos' = ix :=
+exists.elim h (λ _ H, exists.intro _ (index_at_mk H))
+
+lemma index_at_of_exists_iff (ix) : (∃ pos, pf pos = some ix) ↔ ∃ pos', pf.index_at pos' = ix :=
+⟨λ h, index_at_of_exists _ h, λ h, exists.elim h (λ p H, by { rw ←index_at_iff at H, exact ⟨p, H⟩ })⟩
 
 /--
 The index retrieved via `pf.index_at` is known to be unique in the `pf`,
