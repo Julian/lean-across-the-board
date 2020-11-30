@@ -163,6 +163,11 @@ by rw [←mem_iff_nth, ←mem_iff_nth, reduce_option_mem_iff]
 @[simp] lemma map_id'' : map (@id α) = id :=
 funext is_lawful_functor.id_map
 
+lemma map_subtype {α β : Type*} {l : list (list (option α))} {f : α → β} {i j : ℕ} :
+  l.nth i >>= (λ y, option.map (option.map f) (y.nth j)) =
+  (l.map (map (option.map f))).nth i >>= (λ y, y.nth j) :=
+by simp_rw [nth_map, ←option.map_eq_map, seq_bind_eq, function.comp, option.map_eq_map, nth_map]
+
 lemma nth_pmap {p : α → Prop} (f : Π a, p a → β) (l : list α) (h : ∀ a ∈ l, p a) (n : ℕ) :
   nth (pmap f l h) n = option.pmap f (nth l n) (λ x H, h x (nth_mem H)) :=
 begin

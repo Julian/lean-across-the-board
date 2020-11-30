@@ -1,5 +1,6 @@
 import utils.list
 import utils.option
+import utils.nat
 import tactic.nth_rewrite
 
 open list
@@ -102,7 +103,7 @@ begin
                     option.map_eq_some', id.def, option.mem_def] using hl } } },
 end
 
-lemma enum_some_some_injective {l : list (option α)} :
+lemma enum_some_some_injective (l : list (option α)) :
   ∀ ⦃a₁⦄, (l.enum_some.nth a₁).join ≠ none → ∀ ⦃a₂⦄, l.enum_some.nth a₁ = l.enum_some.nth a₂ → a₁ = a₂ :=
 begin
   induction l with hd tl hl,
@@ -150,11 +151,8 @@ lemma enum_some_exists_unique {α : Type*} (l : list (option α)) {n : ℕ} (h :
 begin
   obtain ⟨i, hi⟩ := enum_some_exists_of_lt l h,
   refine ⟨i, hi, _⟩,
-  intro y,
-  contrapose!,
-  intros hne hy,
-  apply hne,
-  apply enum_some_some_injective,
+  intros y hy,
+  apply enum_some_some_injective l,
   { rw hy,
     simp only [option.join, ne.def, not_false_iff] },
   { rw [hy, hi] },
@@ -169,6 +167,54 @@ begin
     { cases hd,
       { simp only [hl, enum_some_cons_none, eq_self_iff_true, and_self, take] },
       { simp only [←hl, map_take, eq_self_iff_true, enum_some_cons_some, and_self, take] } } },
+end
+
+lemma nth_enum_some {n : ℕ} :
+  l.enum_some.nth n = (l.nth n).map (option.map (λ _, (l.take n).reduce_option.length)) :=
+begin
+  induction l with hd tl hl generalizing n,
+  { simp only [enum_some_nil, nth, option.map_none'] },
+  { cases n,
+    { cases hd,
+      { simp only [option.map_some', nth, enum_some_cons_none, option.map_none'] },
+      { simp only [reduce_option_nil, option.map_some', nth, length, enum_some_cons_some, take] } },
+    { cases hd,
+      { simp only [hl, nth, enum_some_cons_none, reduce_option_cons_of_none, take] },
+      { simp only [hl, option.map_map, option.map_comp_map, nth, length, enum_some_cons_some,
+                   nth_map, take, reduce_option_cons_of_some] } } }
+end
+
+lemma enum_some_ordered_iff {m n x y : ℕ}
+  (hm : l.enum_some.nth m = some (some x)) (hn : l.enum_some.nth n = some (some y)) :
+  m < n ↔ x < y :=
+begin
+  induction l with hd tl hl generalizing m n x y,
+  { simpa only using hm },
+  { cases m,
+    { cases hd,
+      { simpa only [nth, enum_some_cons_none] using hm },
+      { simp only [nth, enum_some_cons_some] at hm,
+        cases n,
+        { simp only [nth, enum_some_cons_some] at hn,
+          simp only [←hm, ←hn] },
+        { simp at hn,
+          obtain ⟨z, hz, k, rfl, rfl⟩ := hn,
+          simp only [←hm, nat.succ_pos']} } },
+    { cases hd,
+      { cases n,
+        { simpa using hn },
+        { simp only [nth, enum_some_cons_none] at hn hm,
+          rw ←hl hm hn,
+          simp only [nat.succ_lt_succ_iff] } },
+      { cases n,
+        { simp only [nth, enum_some_cons_some] at hn,
+          rw [←hn],
+          split;
+          simp only [forall_prop_of_false, not_lt, zero_le] },
+        { simp only [nth, enum_some_cons_some, nth_map, option.map_eq_some'] at hm hn,
+          obtain ⟨z, hz, k, rfl, rfl⟩ := hm,
+          obtain ⟨z', hz', k', rfl, rfl⟩ := hn,
+          simpa only [nat.succ_lt_succ_iff] using hl hz hz' } } } }
 end
 
 @[simp] def enum_some_fin (l : list (option α)) : (list (option (fin l.reduce_option.length))) :=
@@ -195,7 +241,7 @@ begin
     simp [hx] },
 end
 
-lemma enum_some_fin_some_injective {l : list (option α)} :
+lemma enum_some_fin_some_injective (l : list (option α)) :
   ∀ ⦃a₁⦄, (l.enum_some_fin.nth a₁).join ≠ none → ∀ ⦃a₂⦄, l.enum_some_fin.nth a₁ = l.enum_some_fin.nth a₂ → a₁ = a₂ :=
 begin
   intros x hx y hy,
@@ -205,10 +251,20 @@ begin
   simp only [nth_pmap, hi, enum_some_fin, fin.mk_eq_subtype_mk, option.pmap] at hy,
   have hy' := hy.symm,
   simp at hy',
-  apply enum_some_some_injective,
+  apply enum_some_some_injective l,
   { rw hi,
     simp only [option.join, ne.def, not_false_iff] },
   { rw [hi, hy'] }
+end
+
+lemma enum_some_fin_ordered_iff {m n : ℕ} {x y}
+  (hm : l.enum_some_fin.nth m = some (some x)) (hn : l.enum_some_fin.nth n = some (some y)) :
+  m < n ↔ x < y :=
+begin
+  simp [nth_pmap] at hm hn,
+  obtain ⟨z, hz, k, rfl, rfl⟩ := hm,
+  obtain ⟨z', hz', k', rfl, rfl⟩ := hn,
+  exact enum_some_ordered_iff hz hz'
 end
 
 lemma enum_some_fin_map_reduce_option (l : list (option α)) :
@@ -412,82 +468,174 @@ begin
       { simp only [←hL, map_take, eq_self_iff_true, and_self, take, enum_2d_some_cons] } } },
 end
 
-lemma enum_2d_some_some_injective {L : list (list (option α))} :
+lemma enum_2d_some_ordered {L : list (list (option α))} {m n x y : ℕ}
+  (hm : ∃ lm, L.enum_2d_some.nth m = some lm ∧ some x ∈ lm)
+  (hn : ∃ ln, L.enum_2d_some.nth n = some ln ∧ some y ∈ ln)
+  (h : m < n) :
+  x < y :=
+begin
+  induction L with l ls hL generalizing m n x y,
+  { simpa only [nth, exists_false, enum_2d_some_nil, false_and] using hm },
+  { obtain ⟨lm, hlm, hxm⟩ := hm,
+    obtain ⟨ln, hln, hyn⟩ := hn,
+    cases m,
+    { cases n,
+      { exact absurd h (lt_irrefl 0) },
+      { simp only [nth, enum_2d_some_cons, nth_map, option.map_eq_some'] at hlm hln,
+        obtain ⟨lz, hlz, hlz'⟩ := hln,
+        have hx : x < l.reduce_option.length,
+          { exact enum_some_lt l (hlm.symm ▸ hxm) },
+        have hy : l.reduce_option.length ≤ y,
+          { rw ←hlz' at hyn,
+            simp only [mem_map, option.map_eq_some'] at hyn,
+            obtain ⟨z, hz, k, rfl, rfl⟩ := hyn,
+            simp only [zero_le, le_add_iff_nonneg_left] },
+        exact lt_of_lt_of_le hx hy } },
+    { cases n,
+      { exact absurd h (not_lt_of_lt m.succ_pos) },
+      { simp only [nth, enum_2d_some_cons, nth_map, option.map_eq_some'] at hlm hln,
+        obtain ⟨lx, hlx, rfl⟩ := hlm,
+        obtain ⟨ly, hly, rfl⟩ := hln,
+        simp only [mem_map, option.map_eq_some'] at hxm hyn,
+        obtain ⟨z, hz, k, rfl, rfl⟩ := hxm,
+        obtain ⟨z', hz', k', rfl, rfl⟩ := hyn,
+        simp only [nat.succ_lt_succ_iff] at h,
+        rw [add_lt_add_iff_right],
+        exact hL ⟨lx, hlx, hz⟩ ⟨ly, hly, hz'⟩ h } } },
+end
+
+lemma enum_2d_some_ordered' {L : list (list (option α))} {m n i j x y : ℕ}
+  (hm : ∃ lm, L.enum_2d_some.nth m = some lm ∧ lm.nth i = some (some x))
+  (hn : ∃ ln, L.enum_2d_some.nth n = some ln ∧ ln.nth j = some (some y)) :
+  m < n ∨ (m = n ∧ i < j) ↔ x < y :=
+begin
+  obtain ⟨lm, hlm, hxi⟩ := hm,
+  obtain ⟨ln, hln, hyj⟩ := hn,
+  have hX : ∃ lm, L.enum_2d_some.nth m = some lm ∧ some x ∈ lm,
+    { exact ⟨lm, hlm, nth_mem hxi⟩ },
+  have hY : ∃ lm, L.enum_2d_some.nth n = some lm ∧ some y ∈ lm,
+    { exact ⟨ln, hln, nth_mem hyj⟩ },
+  rcases lt_trichotomy m n with hmn|rfl|hmn,
+  { simp only [hmn, true_iff, true_or],
+    exact enum_2d_some_ordered hX hY hmn },
+  { rw [hln, option.some_inj] at hlm,
+    rw hlm at hln hyj,
+    have hmL : m < L.enum_2d_some.length := exists.elim (nth_eq_some.mp hln) (λ h _, h),
+    simp only [length_enum_2d_some] at hmL,
+    rw nth_enum_2d_some hmL at hln,
+    simp at hln,
+    obtain ⟨l, hl, rfl⟩ := hln,
+    simp at hxi hyj,
+    obtain ⟨z, hz, k, rfl, rfl⟩ := hxi,
+    obtain ⟨z', hz', k', rfl, rfl⟩ := hyj,
+    rw enum_some_ordered_iff hz hz',
+    split,
+    { rintro (H | ⟨_, H⟩),
+      { exact absurd H (lt_irrefl m) },
+      { simpa only [add_lt_add_iff_right] using H } },
+    { intro H,
+      simpa only [add_lt_add_iff_right, true_and, eq_self_iff_true] using or.inr H } },
+  { have hyx : y < x := enum_2d_some_ordered hY hX hmn,
+    split,
+    { rintro (H | ⟨rfl, H⟩),
+      { exact absurd hmn (not_lt_of_lt H) },
+      { exact absurd hmn (lt_irrefl m) } },
+    { intro H,
+      exact absurd hyx (not_lt_of_lt H) } },
+end
+
+
+lemma enum_2d_some_some_injective (L : list (list (option α))) :
   ∀ x < L.enum_2d_some.length, (∃ z : ℕ, some z ∈ L.enum_2d_some.nth_le x H) →
   ∀ y, L.enum_2d_some.nth x = L.enum_2d_some.nth y → x = y :=
 begin
   rintros x hx ⟨z, hz⟩ y h,
-  simp [mem_iff_nth] at hz,
-  have hy : y < L.enum_2d_some.nth := list.nth_eq_some
+  have hX : ∃ lm, L.enum_2d_some.nth x = some lm ∧ some z ∈ lm,
+    { use L.enum_2d_some.nth_le x hx,
+      simp only [nth_le_nth hx, hz, eq_self_iff_true, and_self] },
+  have hY : ∃ lm, L.enum_2d_some.nth y = some lm ∧ some z ∈ lm,
+    { use L.enum_2d_some.nth_le x hx,
+      simp only [←h, nth_le_nth hx, hz, eq_self_iff_true, and_self] },
   rcases lt_trichotomy x y with H|rfl|H,
-  { simp at hx,
-
-    rw [nth_enum_2d_some hx] at h, },
-  {  },
-  {  },
+  { replace H : z < z := enum_2d_some_ordered hX hY H,
+    exact absurd H (lt_irrefl z) },
+  { refl },
+  { replace H : z < z := enum_2d_some_ordered hY hX H,
+    exact absurd H (lt_irrefl z) }
 end
 
-lemma enum_2d_some_some_injective {L : list (list (option α))} :
+lemma enum_2d_some_some_injective' (L : list (list (option α))) :
   ∀ ⦃a₁ b₁⦄, (L.enum_2d_some.nth a₁ >>= λ l, l.nth b₁).join ≠ none →
   ∀ ⦃a₂ b₂⦄, (L.enum_2d_some.nth a₁ >>= λ l, l.nth b₁) = (L.enum_2d_some.nth a₂ >>= λ l, l.nth b₂) →
   a₁ = a₂ ∧ b₁ = b₂ :=
 begin
   intros a b hx c d hy,
-  simp only [ne.def, option.bind_eq_some, option.join_ne_none'] at hx,
-  obtain ⟨ix, lx, hlx, hix⟩ := hx,
+  simp at hx,
+  obtain ⟨z, l, hl, hl'⟩ := hx,
+  simp only [hl, hl', option.some_bind] at hy,
   have hy' := hy.symm,
-  simp [nth_enum_2d_some, hlx, hix] at hy',
-  obtain ⟨ly, hly, hix'⟩ := hy',
-  have ha : a < L.length,
-    { obtain ⟨H, _⟩ := list.nth_eq_some.mp hlx,
-      simpa only [length_enum_2d_some] using H },
-  have ha' : ix < (L.take (a + 1)).join.reduce_option.length,
-    { apply enum_2d_some_lt _ lx,
-      { rw [←take_enum_2d_some, mem_iff_nth],
-        use a,
-        simp only [nth_enum_2d_some ha, hlx, nth_take, option.map_some'] },
-      { rw mem_iff_nth,
-        use b,
-        simp only [option.map_some', nth_map, hix] },
-      { simp only [option.mem_def] }, },
-  have hc : c < L.length,
-    { obtain ⟨H, _⟩ := list.nth_eq_some.mp hly,
-      simpa only [length_enum_2d_some] using H },
-  have hc' : ix < (L.take (c + 1)).join.reduce_option.length,
-    { apply enum_2d_some_lt _ ly,
-      { rw [←take_enum_2d_some, mem_iff_nth],
-        use c,
-        simp only [nth_enum_2d_some ha, hly, nth_take, option.map_some'] },
-      { rw mem_iff_nth,
-        use d,
-        simp only [option.map_some', nth_map, hix'] },
-      { simp only [option.mem_def] }, },
-  simp [nth_enum_2d_some, ha, hc] at hlx hly,
-  obtain ⟨lx', hlx', rfl⟩ := hlx,
-  obtain ⟨ly', hly', rfl⟩ := hly,
-  simp at hix hix',
-  obtain ⟨lx, hlx, m, hm', hm⟩ := hix,
-  obtain ⟨k, hly, n, hn', hn⟩ := hix',
-  have hac : a = c,
-    { rcases lt_trichotomy a c with hac|rfl|hac,
-      { obtain ⟨la, hla⟩ : take a L <+: take c L,
-          { rw prefix_take_le_iff _ _ _ ha,
-            exact le_of_lt hac },
-        rw [←hla, join_append, reduce_option_append, length_append] at hn,
-        rw ←hn at ha' hc',
-        simp [length_join, take_succ, reduce_option_append, hlx', hly', option.to_list] at hc' ha',
-        -- have : (take a L).join.reduce_option.length < (take c L).join.reduce_option.length,
-        --   { simp only [reduce_uoption_join, map_map],
-        --     apply prefix_len
-        --   },
-        },
-      {  },
-      {  },
-    },
-  apply enum_some_some_injective,
-  { rw hi,
-    simp only [option.join, ne.def, not_false_iff] },
-  { rw [hi, hy'] }
+  simp only [option.bind_eq_some] at hy',
+  have hx' : ∃ (l : list (option ℕ)), L.enum_2d_some.nth a = some l ∧ l.nth b = some (some z) :=
+    ⟨l, hl, hl'⟩,
+  have h : ¬ (a < c ∨ a = c ∧ b < d),
+    { rw enum_2d_some_ordered' hx' hy',
+      simp only [not_lt] },
+  have h' : ¬ (c < a ∨ c = a ∧ d < b),
+    { rw enum_2d_some_ordered' hy' hx',
+      simp only [not_lt] },
+  push_neg at h h',
+  obtain ⟨hca, hdb⟩ := h,
+  obtain ⟨hac, hbd⟩ := h',
+  obtain rfl : a = c := le_antisymm hac hca,
+  obtain rfl : b = d := le_antisymm (hbd rfl) (hdb rfl),
+  simp only [eq_self_iff_true, and_self]
+end
+
+lemma enum_2d_some_exists_of_lt {i : ℕ} (l : list (list (option α))) (h : i < l.join.reduce_option.length) :
+  ∃ (m n : ℕ), l.enum_2d_some.nth m >>= (λ l', l'.nth n) = some (some i) :=
+begin
+  induction l with l ls hl generalizing i,
+  { simp only [reduce_option_nil, length, join] at h,
+    exact absurd h (not_lt_of_le i.zero_le) },
+  { rcases lt_or_le i l.reduce_option.length with hlt|hlt,
+    { obtain ⟨k, hk⟩ := enum_some_exists_of_lt l hlt,
+      use 0,
+      simp only [←hk, option.some_bind, nth, enum_2d_some_cons, exists_apply_eq_apply] },
+    { simp only [reduce_option_append, join, length_append] at h,
+      have hli : i - l.reduce_option.length < ls.join.reduce_option.length,
+        { exact (nat.sub_lt_left_iff_lt_add hlt).mpr h },
+      obtain ⟨m, n, hn⟩ := hl hli,
+      simp only [option.bind_eq_some] at hn,
+      obtain ⟨sl, hsl, hsl'⟩ := hn,
+      use [m + 1, n],
+      simpa only [enum_2d_some_cons, nth, nth_map, hsl, option.map_some',
+                  option.some_bind, hsl'] using nat.sub_add_cancel hlt } }
+end
+
+lemma enum_2d_some_exists_unique {i : ℕ} (l : list (list (option α))) (h : i < l.join.reduce_option.length) :
+  ∃! (m n : ℕ), l.enum_2d_some.nth m >>= (λ l, l.nth n) = some (some i) :=
+begin
+  obtain ⟨m, n, H⟩ := enum_2d_some_exists_of_lt l h,
+  simp only [option.bind_eq_some] at H,
+  obtain ⟨lx, hlx, hlx'⟩ := H,
+  use m,
+  split,
+  { use n,
+    simp only [hlx, hlx', true_and, option.some_bind, eq_self_iff_true],
+    intros y hy,
+    suffices : m = m ∧ y = n,
+      { exact this.right },
+    apply enum_2d_some_some_injective' l,
+    { simp only [hlx, hy, option.some_bind, option.join, ne.def, not_false_iff] },
+    { simp only [hlx, hlx', hy, option.some_bind] } },
+  { rintro y ⟨N, hN, hN'⟩,
+    simp only [option.bind_eq_some] at hN,
+    obtain ⟨lN, hlN, hlN'⟩ := hN,
+    suffices : y = m ∧ N = n,
+      { exact this.left },
+    apply enum_2d_some_some_injective' l,
+    { simp only [hlN, hlN', option.some_bind, option.join, ne.def, not_false_iff] },
+    { simp only [hlx, hlx', hlN, hlN', option.some_bind] } }
 end
 
 @[simp] def enum_2d_some_fin (L : list (list (option α))) : list (list (option (fin L.join.reduce_option.length))) :=
@@ -557,43 +705,71 @@ begin
             { simp only [nat.add_sub_cancel] } } } } } }
 end
 
-lemma enum_2d_some_exists_of_lt {i : ℕ} (l : list (list (option α))) (h : i < l.join.reduce_option.length) :
-  ∃ (m n : ℕ), l.enum_2d_some.nth m >>= (λ l', l'.nth n) = some (some i) :=
+lemma enum_2d_some_fin_some_injective' (L : list (list (option α))) :
+  ∀ ⦃a₁ b₁⦄, (L.enum_2d_some_fin.nth a₁ >>= λ l, l.nth b₁).join ≠ none →
+  ∀ ⦃a₂ b₂⦄, (L.enum_2d_some_fin.nth a₁ >>= λ l, l.nth b₁) = (L.enum_2d_some_fin.nth a₂ >>= λ l, l.nth b₂) →
+  a₁ = a₂ ∧ b₁ = b₂ :=
 begin
-  induction l with l ls hl generalizing i,
-  { simp only [reduce_option_nil, length, join] at h,
-    exact absurd h (not_lt_of_le i.zero_le) },
-  { rcases lt_or_le i l.reduce_option.length with hlt|hlt,
-    { obtain ⟨k, hk⟩ := enum_some_exists_of_lt l hlt,
-      use 0,
-      simp only [←hk, option.some_bind, nth, enum_2d_some_cons, exists_apply_eq_apply] },
-    { simp only [reduce_option_append, join, length_append] at h,
-      have hli : i - l.reduce_option.length < ls.join.reduce_option.length,
-        { exact (nat.sub_lt_left_iff_lt_add hlt).mpr h },
-      obtain ⟨m, n, hn⟩ := hl hli,
-      simp only [option.bind_eq_some] at hn,
-      obtain ⟨sl, hsl, hsl'⟩ := hn,
-      use [m + 1, n],
-      simpa only [enum_2d_some_cons, nth, nth_map, hsl, option.map_some',
-                  option.some_bind, hsl'] using nat.sub_add_cancel hlt } }
+  intros a b ha c d h,
+  simp only [nth_pmap, enum_2d_some_fin, option.bind_eq_some, option.join_ne_none', ne.def,
+              option.pmap_eq_some_iff] at ha,
+  obtain ⟨ix, l, ⟨lz, hlz, rfl⟩, hk⟩ := ha,
+  simp only [nth_pmap, fin.mk_eq_subtype_mk, option.pmap_eq_some_iff] at hk,
+  obtain ⟨z, hz, k, rfl, hk⟩ := hk,
+  apply enum_2d_some_some_injective' L,
+  { simp only [hlz, hz, option.some_bind, option.join, ne.def, not_false_iff] },
+  { have h' := (congr_arg (option.map (option.map subtype.val)) h).symm,
+    simp only [hlz, hz, nth_pmap, enum_2d_some_fin, option.some_bind, option.map_some',
+               option.bind_eq_some, exists_and_distrib_right, exists_eq_right, fin.mk_eq_subtype_mk,
+               option.pmap, subtype.exists, option.pmap_eq_some_iff, option.map_eq_some'] at h',
+    obtain ⟨ix', ⟨l', ⟨lf, hlf, rfl⟩, hl⟩, hix', rfl⟩ := h',
+    simp only [nth_pmap, exists_prop, subtype.mk_eq_mk, exists_eq_right, fin.mk_eq_subtype_mk,
+               option.pmap_eq_some_iff] at hl,
+    simp only [hlf, hl, hlz, hz, option.some_bind] },
 end
 
-lemma enum_2d_some_exists_unique {i : ℕ} (l : list (list (option α))) (h : i < l.join.reduce_option.length) :
-  ∃! (m n : ℕ), l.enum_2d_some.nth m >>= (λ l, l.nth n) = some (some i) :=
+lemma enum_2d_some_fin_exists (l : list (list (option α))) (i : fin l.join.reduce_option.length) :
+  ∃ (m n : ℕ), l.enum_2d_some_fin.nth m >>= (λ l', l'.nth n) = some (some i) :=
 begin
-  obtain ⟨m, n, H⟩ := enum_2d_some_exists_of_lt l h,
-  simp only [option.bind_eq_some] at H,
-  obtain ⟨lx, hlx, hlx'⟩ := H,
+  obtain ⟨m, n, h⟩ := enum_2d_some_exists_of_lt l i.is_lt,
+  simp only [option.bind_eq_some] at h,
+  obtain ⟨lx, hl, hl'⟩ := h,
+  use [m, n],
+  simp only [hl, nth_pmap, hl', option.some_bind, enum_2d_some_fin, fin.mk_eq_subtype_mk,
+             option.pmap, fin.eta],
+end
+
+lemma enum_2d_some_fin_exists_unique (l : list (list (option α))) (i : fin l.join.reduce_option.length) :
+  ∃! (m n : ℕ), l.enum_2d_some_fin.nth m >>= (λ l, l.nth n) = some (some i) :=
+begin
+  obtain ⟨m, ⟨n, hn, hn'⟩, hm⟩ := enum_2d_some_exists_unique l i.is_lt,
+  simp only [option.bind_eq_some] at hn,
+  obtain ⟨lx, hl, hl'⟩ := hn,
   use m,
   split,
   { use n,
-    simp only [hlx, hlx', true_and, option.some_bind, eq_self_iff_true],
-    intro y,
-    contrapose!,
-    intros hne H,
-  },
-  {  },
+    simp only [nth_pmap, hl, hl', true_and, option.some_bind, bex_imp_distrib, enum_2d_some_fin,
+               eq_self_iff_true, fin.mk_eq_subtype_mk, option.pmap, fin.eta,
+               option.pmap_eq_some_iff] at hn' ⊢,
+    rintro y _ h ⟨z, rfl, rfl⟩,
+    exact hn' _ h },
+  { rintro y ⟨N, hN, hN'⟩,
+    simp only [nth_pmap, enum_2d_some_fin, option.bind_eq_some, option.pmap_eq_some_iff] at hN,
+    obtain ⟨lf, ⟨ly, hly, hly'⟩, hlf'⟩ := hN,
+    have hf := (congr_arg (list.map (option.map subtype.val)) hly').symm,
+    simp only [map_pmap, option.map_pmap, pmap_eq_map, map_id', forall_const, option.map_id'',
+                id.def, eq_self_iff_true, fin.mk_eq_subtype_mk, option.pmap_eq_map] at hf,
+    apply hm,
+    use N,
+    simp only [option.some_bind, ←hf, hlf', hly, true_and, and_imp, exists_prop, option.map_some',
+               fin.val_eq_coe, option.bind_eq_some, exists_and_distrib_right, eq_self_iff_true,
+               exists_eq_right, nth_map, subtype.exists, fin.eta, fin.coe_mk, exists_imp_distrib,
+               option.map_eq_some'] at hm hN' ⊢,
+    intros y ix hix pi hix',
+    apply hN',
+    { simp only [nth_pmap, hly, enum_2d_some_fin, option.pmap] },
+    { simp only [nth_pmap, ←hf, hix, hix', option.map_some', fin.val_eq_coe, nth_map,
+                 fin.mk_eq_subtype_mk, option.pmap, fin.eta] } },
 end
-
 
 end list

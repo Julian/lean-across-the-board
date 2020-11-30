@@ -61,6 +61,68 @@ begin
     exact subtype.eq hs },
 end
 
+lemma subtype_exists' {α β : Type*} {p : β → Prop} {f : α → option (subtype p) } {a : α} :
+  (∃ i, f a = some i) ↔ ∃ (i : β), (f a).map (subtype.val) = some i :=
+begin
+  split,
+  { rintro ⟨x, h⟩,
+    exact ⟨x, h.symm ▸ rfl⟩ },
+  { rintro ⟨x, h⟩,
+    obtain ⟨y, hy, hs⟩ := map_eq_some'.mp h,
+    use y,
+    rw [hy, some_inj] },
+end
+
+lemma subtype_exists_unique {α β : Type*} {p : β → Prop} {f : α → option (subtype p) } {i : subtype p} :
+  (∃! x, f x = some i) ↔ ∃! (x : α), (f x).map (subtype.val) = some i.val :=
+begin
+  split,
+  { rintro ⟨x, h, h'⟩,
+    use x,
+    split,
+    { simp only [h, map_some'] },
+    { intros y hy,
+      apply h',
+      simp only [exists_prop, exists_and_distrib_right, exists_eq_right, subtype.coe_eta,
+                 map_eq_some', subtype.exists, subtype.coe_mk, subtype.val_eq_coe] at hy,
+      exact hy.right } },
+  { rintro ⟨x, h, h'⟩,
+    obtain ⟨y, hy, hs⟩ := map_eq_some'.mp h,
+    use x,
+    split,
+    { simpa only [hy] using subtype.eq hs },
+    { intros z hz,
+      apply h',
+      simp only [hz, map_some'] } },
+end
+
+lemma subtype_exists_unique' {α β : Type*} {p : β → Prop} {f : α → option (subtype p) } {a : α} :
+  (∃! i, f a = some i) ↔ ∃! (i : β), (f a).map (subtype.val) = some i :=
+begin
+  split,
+  { rintro ⟨x, h, h'⟩,
+    use x,
+    split,
+    { simp only [h, map_some', subtype.val_eq_coe] },
+    { intros y hy,
+      simp only [exists_and_distrib_right, exists_eq_right, subtype.forall, map_eq_some',
+                 subtype.exists, subtype.coe_mk] at h' hy,
+      obtain ⟨py, hy⟩ := hy,
+      specialize h' y py hy,
+      simp only [←h', subtype.coe_mk] } },
+  { rintro ⟨x, h, h'⟩,
+    obtain ⟨y, hy, hs⟩ := map_eq_some'.mp h,
+    simp only [exists_and_distrib_right, exists_eq_right, subtype.forall, map_eq_some',
+                subtype.exists, subtype.coe_mk] at h' hy h,
+    obtain ⟨px, hx⟩ := h,
+    use ⟨x, px⟩,
+    split,
+    { simpa only using hx },
+    { intros z hz,
+      rw ←option.some_inj,
+      simp only [←hz, ←hx]} },
+end
+
 section bind
 
 @[simp] def join {α : Type*} : option (option α) → option α
