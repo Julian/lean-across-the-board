@@ -17,6 +17,33 @@ begin
     exact nat.le_sub_left_of_add_le hl },
 end
 
+lemma nth_take_of_lt {l : list α} {n m : ℕ} (h : m < n) :
+  (l.take n).nth m = l.nth m :=
+begin
+  induction n with n hn generalizing l m,
+  { simp only [nat.nat_zero_eq_zero] at h,
+    exact absurd h (not_lt_of_le m.zero_le) },
+  { cases l with hd tl,
+    { simp only [take_nil] },
+    { cases m,
+      { simp only [nth, take] },
+      { simpa only using hn (nat.lt_of_succ_lt_succ h) } } },
+end
+
+@[simp] lemma nth_take {l : list α} {n : ℕ} :
+  (l.take (n + 1)).nth n = l.nth n :=
+nth_take_of_lt (nat.lt_succ_self n)
+
+lemma take_succ {l : list α} {n : ℕ} :
+  l.take (n + 1) = l.take n ++ (l.nth n).to_list :=
+begin
+  induction l with hd tl hl generalizing n,
+  { simp only [option.to_list, nth, take_nil, append_nil]},
+  { cases n,
+    { simp only [option.to_list, nth, eq_self_iff_true, and_self, take, nil_append] },
+    { simp only [hl, cons_append, nth, eq_self_iff_true, and_self, take] } }
+end
+
 @[simp] lemma reduce_option_cons_of_some (x : α) (l : list (option α)) :
   reduce_option (some x :: l) = x :: l.reduce_option :=
 by simp only [reduce_option, filter_map, id.def, eq_self_iff_true, and_self]
@@ -133,31 +160,6 @@ lemma reduce_option_nth_iff {l : list (option α)} {x : α} :
   (∃ i, l.nth i = some (some x)) ↔ ∃ i, l.reduce_option.nth i = some x :=
 by rw [←mem_iff_nth, ←mem_iff_nth, reduce_option_mem_iff]
 
-lemma some_injective_of_reduce_option_injective {l : list (option α)}
-  (h : ∀ ⦃x⦄, x < l.reduce_option.length → ∀ ⦃y⦄, l.reduce_option.nth x = l.reduce_option.nth y → x = y) :
-  ∀ ⦃a₁⦄, l.nth a₁ >>= id ≠ none → ∀ ⦃a₂⦄, l.nth a₁ = l.nth a₂ → a₁ = a₂ :=
-begin
-  intros x hx y,
-  contrapose!,
-  intros hne H,
-  simp at hx,
-  obtain ⟨z, hx⟩ := hx,
-  have hy : l.nth y = some (some z),
-    { rw [←H, ←hx] },
-  have hx' := exists.intro x hx,
-  have hy' := exists.intro y hy,
-  rw reduce_option_nth_iff at hx' hy',
-  obtain ⟨i, hi⟩ := hx',
-  obtain ⟨j, hj⟩ := hy',
-  rw list.nth_eq_some at hi,
-  obtain ⟨hli, hi⟩ := hi,
-  obtain ⟨hlx, hx'⟩ := hz,
-  obtain ⟨hly, hy'⟩ := hy',
-  rw ←hy' at hx',
-  simp at h,
-  apply h,
-end
-
 @[simp] lemma map_id'' : map (@id α) = id :=
 funext is_lawful_functor.id_map
 
@@ -183,6 +185,94 @@ begin
     { simp only [pmap, nth_le] },
     { simpa only [hl, pmap, nth_le] } }
 end
+
+lemma join_take (L : list (list α)) (n : ℕ) : (take n L).join = (take n L).foldr (++) [] :=
+begin
+  induction L with l ls hl generalizing n,
+  { simp only [join, foldr, take_nil] },
+  { cases n,
+    { simp only [join, take, foldr] },
+    { simp only [hl, join, take, foldr] } }
+end
+
+lemma reduce_option_join (L : list (list (option α))) : L.join.reduce_option = (map reduce_option L).join :=
+begin
+  induction L with l ls hL,
+  { simp only [join, reduce_option_nil, map_nil] },
+  { cases l with hd tl,
+    { simp only [join, hL, reduce_option_nil, map, nil_append] },
+    { cases hd,
+      { simp only [hL, join, reduce_option_append, map] },
+      { simp only [hL, join, reduce_option_append, map] } } }
+end
+
+section prefixs
+
+lemma prefix_take_le_iff (L : list (list (option α))) (m n : ℕ) (hm : m < L.length) :
+  (take m L) <+: (take n L) ↔ m ≤ n :=
+begin
+  simp only [prefix_iff_eq_take, length_take],
+  induction m with m IH generalizing L n,
+  { simp only [min_eq_left, eq_self_iff_true, zero_le, take] },
+  { cases n,
+    { simp only [nat.nat_zero_eq_zero, le_zero_iff_eq, take, take_nil],
+      split,
+      { cases L,
+        { simp only [length] at hm,
+          exact absurd hm (not_lt_of_le m.succ.zero_le) },
+        { simp only [forall_prop_of_false, not_false_iff, take] } },
+      { intro h,
+        contradiction } },
+    { cases L with l ls,
+      { simp only [length] at hm,
+        exact absurd hm (not_lt_of_le m.succ.zero_le) },
+      { simp only [length] at hm,
+        specialize IH ls n (nat.lt_of_succ_lt_succ hm),
+        simp only [le_of_lt (nat.lt_of_succ_lt_succ hm), min_eq_left] at IH,
+        simp only [le_of_lt hm, IH, true_and, min_eq_left, eq_self_iff_true, length, take],
+        exact ⟨nat.succ_le_succ, nat.le_of_succ_le_succ⟩ } } },
+end
+
+lemma cons_prefix_iff {l l' : list α} (x y : α) :
+  x :: l <+: y :: l' ↔ x = y ∧ l <+: l' :=
+begin
+  split,
+  { rintro ⟨L, hL⟩,
+    simp only [cons_append] at hL,
+    exact ⟨hL.left, ⟨L, hL.right⟩⟩ },
+  { rintro ⟨rfl, h⟩,
+    rwa [prefix_cons_inj] },
+end
+
+lemma map_prefix {l l' : list α} (f : α → β) (h : l <+: l') :
+  l.map f <+: l'.map f :=
+begin
+  induction l with hd tl hl generalizing l',
+  { simp only [nil_prefix, map_nil] },
+  { cases l' with hd' tl',
+    { simpa only using eq_nil_of_prefix_nil h },
+    { rw cons_prefix_iff at h,
+      simp only [h, prefix_cons_inj, hl, map] } },
+end
+
+lemma filter_map_prefix {l l' : list α} (f : α → option β) (h : l <+: l') :
+  l.filter_map f <+: l'.filter_map f :=
+begin
+  induction l with hd tl hl generalizing l',
+  { simp only [nil_prefix, filter_map_nil] },
+  { cases l' with hd' tl',
+    { simpa only using eq_nil_of_prefix_nil h },
+    { rw cons_prefix_iff at h,
+      rw [←@singleton_append _ hd _, ←@singleton_append _ hd' _, filter_map_append,
+         filter_map_append, h.left, prefix_append_right_inj],
+      exact hl h.right } },
+end
+
+lemma reduce_option_prefix {l l' : list (option α)} (h : l <+: l') :
+  l.reduce_option <+: l'.reduce_option :=
+filter_map_prefix id h
+
+end prefixs
 
 end list
 
