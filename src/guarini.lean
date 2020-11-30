@@ -1,4 +1,5 @@
 import chess.move.legal
+import chess.notation
 
 /-!
 
@@ -41,14 +42,10 @@ Solution:
 -/
 
 
-def starting_position : chess.board _ _ _ _ := {
-  pieces := ![♞, ♞, ♘, ♘],
-  contents := PF ![
-    ![(0 : fin 4), __, (1 : fin 4)],
-    ![    __,      __,       __   ],
-    ![(2 : fin 4), __, (3 : fin 4)]
-  ],
-}
+def starting_position : chess.board _ _ _ _ := listboard [
+    [♞, __, ♞],
+    [__, __, __],
+    [♘, __, ♘] ]
 
 
 def ending_position : chess.board _ _ _ _ := {
