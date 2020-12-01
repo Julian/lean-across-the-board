@@ -40,3 +40,22 @@ def listboard (B : list (list (option chess.colored_piece))) :
         rw [h', hix] },
     end
   }
+
+variables {K : Type*} {x : K} {hd : list K} {tl : list (list K)}
+
+instance board_fin0 : has_zero (fin (hd :: tl).length) :=
+⟨⟨0, by simp only [nat.succ_pos', list.length]⟩⟩
+
+instance board_fin1 : has_one (fin (hd :: tl).length) :=
+⟨⟨tl.cases_on 0 1, by { cases tl; simp only [nat.succ_pos', nat.succ_lt_succ_iff, list.length, pi.one_apply]}⟩⟩
+
+instance board_fin0' :
+  has_zero (fin (list.foldr max 0 (list.map list.length ((x :: hd) :: tl)))) :=
+⟨⟨0, by simp only [nat.succ_pos', list.length, lt_max_iff, true_or, list.foldr, list.map]⟩⟩
+
+instance board_fin1' :
+  has_one (fin (list.foldr max 0 (list.map list.length ((x :: hd) :: tl)))) :=
+⟨⟨hd.cases_on 0 1,
+  by { cases hd;
+       simp only [nat.succ_pos', nat.succ_lt_succ_iff, list.length,
+                  pi.one_apply, lt_max_iff, true_or, list.foldr, list.map]}⟩⟩
