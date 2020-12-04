@@ -143,9 +143,6 @@ def perform_move : board m n ι K :=
   contains := f.retains_surjectivity,
   injects := f.retains_injectivity }
 
--- The length of the sequence
-variables {o : ℕ}
-
 /--
 Define the mapping of `playfield`s after performing successive `move_piece`s
 using the pairs of positions in the provided `elements`,
@@ -153,10 +150,10 @@ starting from the `start_board`.
 -/
 def scan_contents
   (start_board: board m n ι K)
-  (elements : fin o → (m × n) × (m × n)) : fin (o + 1) → playfield m n ι :=
-start_board.contents.move_sequence (vector.of_fn elements)
+  (elements : list ((m × n) × (m × n))) : list (playfield m n ι) :=
+start_board.contents.move_sequence elements
 
-variables (m n ι K o)
+variables (m n ι K)
 
 /--
 A move `sequence` represents a sequential set of moves from a starting `board`.
@@ -166,100 +163,153 @@ No inhabited instance because boards do not have an inhabited instance.
 @[nolint has_inhabited_instance]
 structure sequence :=
 (start_board : board m n ι K)
-(elements : fin o → (m × n) × (m × n))
+(elements : list ((m × n) × (m × n)))
 (all_occupied_start' :
-  ∀ (e : fin o),
-    ((scan_contents start_board elements) e.cast_succ).occupied_at (elements e).fst . tactic.exact_dec_trivial)
+  ∀ {e : ℕ} (he : e < elements.length),
+    ((start_board.contents.playfield_at elements he).occupied_at (elements.nth_le e he).fst) . tactic.exact_dec_trivial)
 (all_unoccupied_end' :
-  ∀ (e : fin o),
-    ¬ ((scan_contents start_board elements) e.cast_succ).occupied_at (elements e).snd . tactic.exact_dec_trivial)
+  ∀ {e : ℕ} (he : e < elements.length),
+    ¬ ((start_board.contents.playfield_at elements he).occupied_at (elements.nth_le e he).snd) . tactic.exact_dec_trivial)
 
 namespace sequence
 
-variables {m n ι K o}
-variables (s : sequence m n ι K o)
+variables {m n ι K}
+variables (s : sequence m n ι K)
 
 /-- Shorthand for referring to the contents at a sequence index `ixₒ : fin (o + 1)`. -/
-def contents_at (ixₒ : fin (o + 1)) : playfield m n ι :=
-(scan_contents s.start_board s.elements) ixₒ
+def contents_at {i : ℕ} (ixₒ : i < s.elements.length) : playfield m n ι :=
+s.start_board.contents.playfield_at s.elements ixₒ
 
 /-- Shorthand for referring to the contents at a sequence index `ixₒ : fin (o + 1)`. -/
-lemma contents_at_def (ixₒ : fin (o + 1)) :
-  s.contents_at ixₒ = (scan_contents s.start_board s.elements) ixₒ := rfl
+lemma contents_at_def {i : ℕ} (ixₒ : i < s.elements.length) :
+  s.contents_at ixₒ = s.start_board.contents.playfield_at s.elements ixₒ := rfl
+
+/-- Shorthand for referring to the contents at a sequence index `ixₒ : fin (o + 1)`. -/
+def contents_after {i : ℕ} (ixₒ : i < s.elements.length) : playfield m n ι :=
+s.start_board.contents.playfield_after s.elements ixₒ
+
+/-- Shorthand for referring to the contents at a sequence index `ixₒ : fin (o + 1)`. -/
+lemma contents_after_def {i : ℕ} (ixₒ : i < s.elements.length) :
+  s.contents_after ixₒ = s.start_board.contents.playfield_after s.elements ixₒ := rfl
 
 /-- Every scanned board is occupied at the start square of the upcoming move. -/
-lemma all_occupied_start (e : fin o) : (s.contents_at e.cast_succ).occupied_at (s.elements e).fst :=
-s.all_occupied_start' e
+lemma all_occupied_start {e : ℕ} (he : e < s.elements.length) :
+  (s.contents_at he).occupied_at (s.elements.nth_le e he).fst :=
+s.all_occupied_start' he
 
 /-- Every scanned board is unoccupied at the end square of the upcoming move. -/
-lemma all_unoccupied_end (e : fin o) : ¬ (s.contents_at e.cast_succ).occupied_at (s.elements e).snd :=
-s.all_unoccupied_end' e
+lemma all_unoccupied_end {e : ℕ} (he : e < s.elements.length) :
+  ¬ (s.contents_at he).occupied_at (s.elements.nth_le e he).snd :=
+s.all_unoccupied_end' he
 
-open playfield vector
+open playfield vector list
+
+lemma contents_at_succ {e : ℕ} (he : e + 1 < s.elements.length) :
+  s.contents_at he = s.contents_after (nat.lt_of_succ_lt he) :=
+by simp only [contents_at_def, contents_after_def, playfield_at_def, playfield_after_def]
 
 /-- The first contents in a `scan_contents` `sequence` is of the `start_board`. -/
-@[simp] lemma sequence_zero : s.contents_at 0 = s.start_board.contents :=
-by simp only [contents_at_def, scan_contents, move_sequence_def, nth_zero, scanl_head]
+@[simp] lemma sequence_zero {h : 0 < s.elements.length} :
+  s.contents_at h = s.start_board.contents :=
+by  simp only [contents_at_def, move_sequence_def, playfield_at_def, nth_le_zero_scanl]
 
 /-- Any `contents_at` a step in the `sequence` is the result of performing a `move_piece` using
 the `sequence.elements` at that step. -/
-lemma sequence_step (e : fin o) :
-  s.contents_at e.succ =
-    (s.contents_at e.cast_succ).move_piece (s.elements e).fst (s.elements e).snd :=
-by simp only [contents_at_def, scan_contents, move_sequence_def, scanl_nth, nth_of_fn]
+lemma sequence_step {e : ℕ} (he : e < s.elements.length) :
+  s.contents_after he =
+    (s.contents_at he).move_piece
+    (s.elements.nth_le e he).fst (s.elements.nth_le e he).snd :=
+by simp only [contents_at_def, contents_after_def, playfield_after_eq_move]
+
+/-- Every scanned board is unoccupied at the start square of the previous move. -/
+lemma all_unoccupied_start_after {e : ℕ} (he : e < s.elements.length) :
+  ¬ (s.contents_after he).occupied_at (s.elements.nth_le e he).fst :=
+by { rw [sequence_step, move_piece_occupied_start], exact all_unoccupied_end s he }
+
+/-- Every scanned board is occupied at the end square of the previous move. -/
+lemma all_occupied_end_after {e : ℕ} (he : e < s.elements.length) :
+  (s.contents_after he).occupied_at (s.elements.nth_le e he).snd :=
+by { rw [sequence_step, move_piece_occupied_end], exact all_occupied_start s he }
 
 /-- Every `playfield` in a sequence of moves contains all the indices it can. -/
-lemma retains_surjectivity (ixₒ : fin (o + 1)) :
-  function.surjective (s.contents_at ixₒ).index_at :=
+lemma retains_surjectivity {e : ℕ} (he : e < s.elements.length) :
+  function.surjective (s.contents_at he).index_at :=
 begin
-  apply fin.induction_on ixₒ,
+  induction e with e IH,
   { rw sequence_zero,
     exact s.start_board.contains },
-  { intros ix h,
-    rw sequence_step,
-    apply playfield.index_at_retains_surjectivity _ h,
-    exact s.all_occupied_start _ },
+  { rw [contents_at_succ, sequence_step],
+    exact (s.contents_at (nat.lt_of_succ_lt he)).index_at_retains_surjectivity
+      (IH (nat.lt_of_succ_lt he)) (all_occupied_start _ _) }
+end
+
+/-- Every `playfield` in a sequence of moves contains all the indices it can. -/
+lemma retains_surjectivity_after {e : ℕ} (he : e < s.elements.length) :
+  function.surjective (s.contents_after he).index_at :=
+begin
+  rw sequence_step,
+  exact (s.contents_at he).index_at_retains_surjectivity (retains_surjectivity _ _)
+    (all_occupied_start _ _)
 end
 
 /-- Every `playfield` in a sequence of moves injectively accesses the indices. -/
-lemma retains_injectivity (ixₒ : fin (o + 1)) : (s.contents_at ixₒ).some_injective :=
+lemma retains_injectivity {e : ℕ} (he : e < s.elements.length) :
+  (s.contents_at he).some_injective :=
 begin
-  apply fin.induction_on ixₒ,
-  { simpa only [sequence_zero] using s.start_board.injects },
-  { intros ix h,
-    simp only [sequence_step],
-    apply playfield.retains_injectivity _ h,
-    exact s.all_occupied_start _ },
+  induction e with e IH,
+  { rw sequence_zero,
+    exact s.start_board.injects },
+  { rw [contents_at_succ, sequence_step],
+    apply playfield.retains_injectivity _ (IH (nat.lt_of_succ_lt he)),
+    exact s.all_occupied_start _ }
+end
+
+/-- Every `playfield` in a sequence of moves injectively accesses the indices. -/
+lemma retains_injectivity_after {e : ℕ} (he : e < s.elements.length) :
+  (s.contents_after he).some_injective :=
+begin
+  rw sequence_step,
+  exact (s.contents_at he).retains_injectivity (retains_injectivity _ _)
+    (all_occupied_start _ _)
 end
 
 /-- Pieces do not disappear after any `move_piece` in a `sequence`. -/
-lemma retains_pieces (ixₒ : fin (o + 1)) (ixᵢ : ι) :
-  ixᵢ ∈ (s.contents_at ixₒ) :=
-exists.elim (s.retains_surjectivity ixₒ ixᵢ) (λ pos h, h ▸ playfield.index_at_in pos)
+lemma retains_pieces {e : ℕ} (ixₒ : e < s.elements.length) (ixᵢ : ι) :
+  ixᵢ ∈ (s.contents_after ixₒ) :=
+exists.elim (s.retains_surjectivity_after ixₒ ixᵢ) (λ pos h, h ▸ playfield.index_at_in pos)
 
 /-- Pieces do not become superimposed after any `move` in a `sequence`. -/
-lemma no_superimposed (ixₒ : fin (o + 1)) (pos pos') (hne : pos ≠ pos')
-    (h : (s.contents_at ixₒ).occupied_at pos) :
-      (s.contents_at ixₒ) pos ≠ (s.contents_at ixₒ) pos' :=
-λ H, hne (s.retains_injectivity _ h H)
+lemma no_superimposed {e : ℕ} (ixₒ : e < s.elements.length) (pos pos') (hne : pos ≠ pos')
+    (h : (s.contents_after ixₒ).occupied_at pos) :
+      (s.contents_after ixₒ) pos ≠ (s.contents_after ixₒ) pos' :=
+λ H, hne (s.retains_injectivity_after _ h H)
 
 /-- The board which results from applying the first `ix₀ + 1` `move`s in the `sequence`. -/
-def boards (ixₒ : fin (o + 1)) : board m n ι K :=
+def boards (e : ℕ) (ixₒ : e < s.elements.length) : board m n ι K :=
+{ contents := s.contents_after ixₒ,
+  pieces := s.start_board.pieces,
+  contains := s.retains_surjectivity_after ixₒ,
+  injects := s.retains_injectivity_after ixₒ }
+
+/-- The board which results from applying all `move`s in the `sequence`. -/
+def end_board : board m n ι K :=
+  dite (s.elements.length = 0) (λ _, s.start_board)
+    (λ h, s.boards (s.elements.length - 1) (nat.pred_lt h))
+
+/-- The board which on which the first `ix₀ + 1` `move`s in the `sequence` is applied. -/
+def boards_before (e : ℕ) (ixₒ : e < s.elements.length) : board m n ι K :=
 { contents := s.contents_at ixₒ,
   pieces := s.start_board.pieces,
   contains := s.retains_surjectivity ixₒ,
   injects := s.retains_injectivity ixₒ }
 
-/-- The board which results from applying all `move`s in the `sequence`. -/
-def end_board : board m n ι K := s.boards (fin.last o)
-
 variables {b}
 variables (s)
 
 /-- The `ix₀`'th `move` in the `sequence`. -/
-def moves (ixₒ : fin o) : chess.move (s.boards ixₒ.cast_succ) :=
-{ start_square := (s.elements ixₒ).fst,
-  end_square := (s.elements ixₒ).snd,
+def moves (e : ℕ) (he : e < s.elements.length) : chess.move (s.boards_before e he) :=
+{ start_square := (s.elements.nth_le e he).fst,
+  end_square := (s.elements.nth_le e he).snd,
   occupied_start := by { simpa only [boards] using s.all_occupied_start _ },
   unoccupied_end := by { simpa only [boards] using s.all_unoccupied_end _ } }
 
@@ -271,16 +321,18 @@ lemma fixes_unmentioned_squares
   (ixᵢ : ι)
   {pos}
   {h_pos: s.start_board.contents pos = ixᵢ}
-  (h_unmentioned : ∀ ixₒ, pos ≠ (s.elements ixₒ).fst ∧ pos ≠ (s.elements ixₒ).snd) :
-    ∀ ixₒ, (s.boards ixₒ).contents pos = ixᵢ :=
+  (h_unmentioned : ∀ {e : ℕ} (ixₒ : e < s.elements.length),
+    pos ≠ (s.elements.nth_le e ixₒ).fst ∧ pos ≠ (s.elements.nth_le e ixₒ).snd) :
+    ∀ {e : ℕ} (ixₒ : e < s.elements.length), (s.boards e ixₒ).contents pos = some ixᵢ :=
 begin
   dsimp [boards, scan_contents],
-  intro ix,
-  apply fin.induction_on ix,
+  intros e he,
+  rw [sequence_step, move_piece_diff _ (h_unmentioned _).left (h_unmentioned _).right],
+  induction e with e IH,
   { simpa only [sequence_zero] using h_pos },
-  { intros ix' h,
-    simpa only [sequence_step, move_piece_diff,
-                h_unmentioned, ne.def, not_false_iff] using h },
+  { simp only [sequence_step, move_piece_diff, contents_at_succ, h_unmentioned,
+               ne.def, not_false_iff],
+    apply IH }
 end
 
 end sequence
@@ -294,7 +346,7 @@ variable (b)
 Assert the existence of a `sequence` of length `o` from a `start_board` to a given end board.
 -/
 def has_sequence_len (end_board: board m n ι K) (o : ℕ) :=
-    ∃ (s : chess.move.sequence m n ι K o), b ≈ s.start_board ∧ end_board ≈ s.end_board
+    ∃ (s : chess.move.sequence m n ι K), b ≈ s.start_board ∧ end_board ≈ s.end_board
 
 /-- Assert the existence of a `sequence` from a `start_board` to a given end board. -/
 def has_sequence_to (end_board: board m n ι K) :=

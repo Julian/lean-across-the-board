@@ -57,7 +57,7 @@ def ending_position : chess.board _ _ _ _ := {
 
 def guarini_seq : chess.move.sequence.legal :=
 { start_board := starting_position,
-  elements := ![
+  elements := [
   ((2, 0), (0, 1)),
   ((2, 2), (1, 0)),
   ((0, 1), (2, 2)),
@@ -76,15 +76,16 @@ def guarini_seq : chess.move.sequence.legal :=
   ((1, 2), (2, 0))] }
 
 def first_move : chess.move starting_position :=
-let pair := guarini_seq.elements 0 in ⟨pair.fst, pair.snd, dec_trivial, dec_trivial⟩
+let pair := guarini_seq.elements.nth_le 0 dec_trivial in ⟨pair.fst, pair.snd, dec_trivial, dec_trivial⟩
 
-example : guarini_seq.to_sequence.boards 0 ≈ guarini_seq.start_board := dec_trivial
+example : guarini_seq.to_sequence.boards_before 0 dec_trivial ≈ guarini_seq.start_board := dec_trivial
 
-example : guarini_seq.to_sequence.boards 1 ≈ first_move.perform_move := dec_trivial
+example : guarini_seq.to_sequence.boards 0 dec_trivial ≈ first_move.perform_move := dec_trivial
 
-example : ∀ ix, (guarini_seq.elements ix).fst ≠ (guarini_seq.elements ix).snd := dec_trivial
+example : ∀ ix (hix : ix < guarini_seq.elements.length),
+  (guarini_seq.elements.nth_le ix hix).fst ≠ (guarini_seq.elements.nth_le ix hix).snd := dec_trivial
 
 lemma guarini : starting_position.has_sequence_to ending_position :=
-⟨_, guarini_seq.to_sequence, dec_trivial⟩
+⟨guarini_seq.elements.length, guarini_seq.to_sequence, dec_trivial⟩
 
 -- Graph-equivalence

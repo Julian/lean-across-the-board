@@ -120,8 +120,6 @@ No inhabited instance because `move` is uninhabited.
 structure legal extends chess.move b :=
 (legality: (is_legal to_move) . tactic.exact_dec_trivial)
 
-variables {o : ℕ}
-
 /--
 A legal sequence is a move `sequence` along with a proof that all sequential
 moves are legal.
@@ -129,8 +127,9 @@ moves are legal.
 No inhabited instance because `sequence` is uninhabited.
 -/
 @[nolint has_inhabited_instance]
-structure sequence.legal extends chess.move.sequence m n ι chess.colored_piece o :=
-(legality: ∀ (i : fin o), is_legal (to_sequence.moves i) . tactic.exact_dec_trivial)
+structure sequence.legal extends chess.move.sequence m n ι chess.colored_piece :=
+(legality: ∀ {i : ℕ} (hi : i < to_sequence.elements.length),
+  is_legal (to_sequence.moves i hi) . tactic.exact_dec_trivial)
 
 end move
 

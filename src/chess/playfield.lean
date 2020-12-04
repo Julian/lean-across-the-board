@@ -1,6 +1,8 @@
 import chess.utils
+import utils.list
 import data.matrix.notation
 import data.set.finite
+import data.list.zip
 
 /-!
 
@@ -954,46 +956,65 @@ section move_sequence
 -- The length of the sequence
 variables {o : ℕ}
 -- Fix a sequence of start and end squares.
-variables (seq : vector ((m × n) × (m × n)) o)
+variables (seq : list ((m × n) × (m × n)))
 
 /-- Make a sequence of `move`s all at once. -/
-def move_sequence : fin (o + 1) → playfield m n ι :=
-(vector.scanl (λ acc (x : prod _ _), move_piece acc x.fst x.snd) pf seq).nth
+def move_sequence : list (playfield m n ι) :=
+list.scanl (λ acc (x : prod _ _), move_piece acc x.fst x.snd) pf seq
 
 /--
 Equivalent to to `move_sequence`, but useful for `rewrite`\ ing.
 -/
 lemma move_sequence_def : pf.move_sequence seq =
-  (vector.scanl (λ acc (x : prod _ _), move_piece acc x.fst x.snd) pf seq).nth := rfl
+  list.scanl (λ acc (x : prod _ _), move_piece acc x.fst x.snd) pf seq := rfl
+
+def playfield_at {e : ℕ} (he : e < seq.length) : playfield m n ι :=
+(move_sequence pf seq).nth_le e (by simpa only [move_sequence_def, list.length_scanl] using nat.lt_succ_of_lt he)
+
+def playfield_after {e : ℕ} (he : e < seq.length) : playfield m n ι :=
+(move_sequence pf seq).nth_le (e + 1) (by simpa only [move_sequence_def, list.length_scanl, add_lt_add_iff_right] using he)
+
+lemma playfield_at_def {e : ℕ} {he : e < seq.length} :
+  pf.playfield_at seq he = (move_sequence pf seq).nth_le e (by simpa only [move_sequence_def, list.length_scanl] using nat.lt_succ_of_lt he) :=
+  rfl
+
+lemma playfield_after_def {e : ℕ} {he : e < seq.length} :
+  pf.playfield_after seq he =
+  (move_sequence pf seq).nth_le (e + 1) (by simpa only [move_sequence_def, list.length_scanl, add_lt_add_iff_right] using he) :=
+  rfl
+
+lemma playfield_after_eq_move {e : ℕ} {he : e < seq.length} :
+  pf.playfield_after seq he = (pf.playfield_at seq he).move_piece
+    (seq.nth_le e he).fst (seq.nth_le e he).snd :=
+by simp only [playfield_at_def, playfield_after_def, move_sequence_def, list.nth_le_succ_scanl]
 
 /--
 Throughout a sequence, moving an (optional) index that was at
 `start_square` places it at `end_square` on the next board.
 -/
-lemma move_sequence_start (e : fin o) :
-((pf.move_sequence seq) e.cast_succ) (seq.nth e).fst = ((pf.move_sequence seq) e.succ) (seq.nth e).snd :=
-by simp only [move_sequence_def, vector.scanl_nth, move_piece_end]
+lemma move_sequence_start {e : ℕ} (he : e < seq.length) :
+  (pf.playfield_at seq he) (seq.nth_le e he).fst =
+  (pf.playfield_after seq he) (seq.nth_le e he).snd :=
+by simp only [playfield_after_eq_move, move_piece_end]
 
 /--
 Throughout a sequence, moving an (optional) index that was at
 `end_square` places it at `start_square` on the next board.
 -/
-lemma move_sequence_end (e : fin o) :
-((pf.move_sequence seq) e.cast_succ) (seq.nth e).snd = ((pf.move_sequence seq) e.succ) (seq.nth e).fst :=
-by simp only [move_sequence_def, vector.scanl_nth, move_piece_start]
+lemma move_sequence_end {e : ℕ} (he : e < seq.length) :
+  (pf.playfield_at seq he) (seq.nth_le e he).snd =
+  (pf.playfield_after seq he) (seq.nth_le e he).fst :=
+by simp only [playfield_after_eq_move, move_piece_start]
 
 /--
 Throughout a sequence, moving an (optional) index retains whatever
 (optional) indices that were at other squares on the next board.
 -/
-@[simp] lemma move_sequence_diff
-  (other_square : m × n)
-  (e : fin o)
-  (ne_start : other_square ≠ (seq.nth e).fst)
-  (ne_end : other_square ≠ (seq.nth e).snd) :
-  ((pf.move_sequence seq) e.cast_succ) other_square = ((pf.move_sequence seq) e.succ) other_square :=
-by simp only [move_sequence_def, vector.scanl_nth, ne_start, ne_end,
-              ne.def, not_false_iff, move_piece_diff]
+@[simp] lemma move_sequence_diff {e : ℕ} (he : e < seq.length)
+  {pos : m × n} (hpos : pos ≠ (seq.nth_le e he).fst) (hpos' : pos ≠ (seq.nth_le e he).snd) :
+  (pf.playfield_at seq he) pos =
+  (pf.playfield_after seq he) pos :=
+by simp only [playfield_after_eq_move, move_piece_diff, hpos, hpos', ne.def, not_false_iff]
 
 end move_sequence
 
