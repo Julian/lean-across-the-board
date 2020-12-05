@@ -68,9 +68,9 @@ def downright : chess.move b₁ := {start_square := (0, 0), end_square := (2, 1)
 example : downright.piece = ♞ := rfl
 example : downright.piece ≠ ♚ := dec_trivial
 
-def cycle : chess.move.sequence _ _ _ _ _ := {
+def cycle : chess.move.sequence _ _ _ _ := {
   start_board := b₁,
-  elements := ![
+  elements := [
     (downright.start_square, downright.end_square),
     (downright.end_square, downright.start_square)
   ]
