@@ -1018,6 +1018,9 @@ by simp only [playfield_after_eq_move, move_piece_diff, hpos, hpos', ne.def, not
 
 end move_sequence
 
+def to_list {m n : ℕ} (pf : playfield (fin m) (fin n) ι) : list (list (option ι)) :=
+  list.of_fn (λ i, list.of_fn (λ j, pf (i, j)))
+
 end playfield
 
 end playfield
