@@ -5,6 +5,30 @@ open list
 
 namespace list
 
+section mmap
+
+universes u v w
+variables {m : Type u → Type v} [monad m] {α : Type w} {β : Type u}
+variables {a : α} {l : list α} {f : α → m β}
+
+@[simp] lemma mmap_nil : list.nil.mmap f = pure [] := rfl
+
+@[simp] lemma mmap_cons : (a :: l).mmap f = f a >>= λ a', l.mmap f >>= λ l', pure (a'::l') := rfl
+
+end mmap
+
+section mmap
+
+universes u v
+variables {m : Type → Type v} [monad m] {α : Type u} {β : Type}
+variables {a : α} {l : list α} {f : α → m β}
+
+@[simp] lemma mmap'_nil : list.nil.mmap' f = pure () := rfl
+
+@[simp] lemma mmap'_cons : (a :: l).mmap' f = f a >> l.mmap' f := rfl
+
+end mmap
+
 variables {α β γ : Type*}
 
 lemma nth_append_right {l₁ l₂ : list α} {n : ℕ} (hn : l₁.length ≤ n) :
