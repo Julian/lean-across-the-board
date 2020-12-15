@@ -152,7 +152,6 @@ decorate_errors_failure_iff
 
 @[simp] lemma pure_eq_done : (@pure parser _ _ a) = λ _ n, done n a := rfl
 
-
 section bind
 
 variable {f : α → parser β}
@@ -406,10 +405,12 @@ end
 
 section valid_parsers
 
-lemma pure.valid : valid (pure a) :=
+namespace valid
+
+@[simp] lemma pure : valid (pure a) :=
 by { intros cb n, simp only [pure_eq_done, parse_result.pos, imp_self, and_true] }
 
-@[simp] lemma valid.bind {f : α → parser β} (hp : p.valid) (hf : ∀ a, (f a).valid) :
+@[simp] lemma bind {f : α → parser β} (hp : p.valid) (hf : ∀ a, (f a).valid) :
   (p >>= f).valid :=
 begin
   intros cb n,
@@ -436,39 +437,42 @@ begin
         simp only [hn, hf, hp] } } },
 end
 
-lemma valid.and_then {q : parser β} (hp : p.valid) (hq : q.valid) :
+lemma and_then {q : parser β} (hp : p.valid) (hq : q.valid) :
   (p >> q).valid :=
 by { rw [and_then_eq_bind], exact hp.bind (λ _, hq) }
 
-@[simp] lemma valid.map (hp : p.valid) {f : α → β} : (f <$> p).valid :=
-by { rw ←is_lawful_monad.bind_pure_comp_eq_map, exact hp.bind (λ _, pure.valid) }
+@[simp] lemma map (hp : p.valid) {f : α → β} : (f <$> p).valid :=
+by { rw ←is_lawful_monad.bind_pure_comp_eq_map, exact hp.bind (λ _, pure) }
 
-@[simp] lemma valid.mmap {l : list α} {f : α → parser β} (h : ∀ a ∈ l, (f a).valid) :
+@[simp] lemma mmap {l : list α} {f : α → parser β} (h : ∀ a ∈ l, (f a).valid) :
   (l.mmap f).valid :=
 begin
   induction l with hd tl hl generalizing h,
-  { exact pure.valid },
-  { exact valid.bind (h _ (list.mem_cons_self _ _))
-      (λ b, valid.map (hl (λ _ ha, h _ (list.mem_cons_of_mem _ ha)))) }
+  { exact pure },
+  { exact bind (h _ (list.mem_cons_self _ _))
+      (λ b, map (hl (λ _ ha, h _ (list.mem_cons_of_mem _ ha)))) }
 end
 
-@[simp] lemma valid.mmap' {l : list α} {f : α → parser β} (h : ∀ a ∈ l, (f a).valid) :
+@[simp] lemma mmap' {l : list α} {f : α → parser β} (h : ∀ a ∈ l, (f a).valid) :
   (l.mmap' f).valid :=
 begin
   induction l with hd tl hl generalizing h,
-  { exact pure.valid },
-  { refine valid.and_then (h _ (list.mem_cons_self _ _))
+  { exact pure },
+  { refine and_then (h _ (list.mem_cons_self _ _))
       (hl (λ _ ha, h _ (list.mem_cons_of_mem _ ha))) }
 end
 
-@[simp] lemma failure.valid : @parser.valid α failure :=
+@[simp] lemma failure : @parser.valid α failure :=
 begin
   simp only [failure_def, valid, imp_self, and_true, parse_result.pos],
   rintro - _,
   refl
 end
 
-@[simp] lemma valid.orelse (hp : p.valid) (hq : q.valid) : (p <|> q).valid :=
+@[simp] lemma guard {p : Prop} [decidable p] : valid (guard p) :=
+by simp only [guard, apply_ite valid, pure, failure, or_true, if_true_left_eq_or]
+
+@[simp] lemma orelse (hp : p.valid) (hq : q.valid) : (p <|> q).valid :=
 begin
   intros cb n,
   cases hx : (p <|> q) cb n with posx resx posx errx,
@@ -481,7 +485,7 @@ begin
       simpa only [parse_result.pos, hx] using hp cb n } }
 end
 
-@[simp] lemma decorate_errors.valid (hp : p.valid) :
+@[simp] lemma decorate_errors (hp : p.valid) :
   (@decorate_errors α msgs p).valid :=
 begin
   dunfold decorate_errors,
@@ -493,10 +497,10 @@ begin
   { simp only [decorate_errors, imp_self, and_true, parse_result.pos] },
 end
 
-@[simp] lemma decorate_error.valid (hp : p.valid) : (@decorate_error α msg p).valid :=
-decorate_errors.valid hp
+@[simp] lemma decorate_error (hp : p.valid) : (@decorate_error α msg p).valid :=
+decorate_errors hp
 
-@[simp] lemma any_char.valid : valid any_char :=
+@[simp] lemma any_char : valid any_char :=
 begin
   intros cb n,
   simp only [any_char],
@@ -506,7 +510,7 @@ begin
   { simp only [imp_self, and_true, parse_result.pos] }
 end
 
-@[simp] lemma sat.valid {p : char → Prop} [decidable_pred p] : valid (sat p) :=
+@[simp] lemma sat {p : char → Prop} [decidable_pred p] : valid (sat p) :=
 begin
   intros cb n,
   simp only [sat],
@@ -517,12 +521,29 @@ begin
   { simp only [parse_result.pos, imp_self, and_true] }
 end
 
-@[simp] lemma eps.valid : valid eps := pure.valid
+@[simp] lemma eps : valid eps := pure
 
-lemma ch.valid {c : char} : valid (ch c) := decorate_error.valid (sat.valid.and_then eps.valid)
+lemma ch {c : char} : valid (ch c) := decorate_error (sat.and_then eps)
 
-lemma char_buf.valid {s : char_buffer} : valid (char_buf s) :=
-decorate_error.valid (valid.mmap' (λ _ _, ch.valid))
+lemma char_buf {s : char_buffer} : valid (char_buf s) :=
+decorate_error (mmap' (λ _ _, ch))
+
+lemma one_of {cs : list char} : (one_of cs).valid :=
+decorate_errors sat
+
+lemma one_of' {cs : list char} : (one_of' cs).valid :=
+one_of.and_then eps
+
+lemma str {s : string} : (str s).valid :=
+decorate_error (mmap' (λ _ _, ch))
+
+lemma remaining : remaining.valid :=
+λ _ _, ⟨le_refl _, λ h, h⟩
+
+lemma eof : eof.valid :=
+decorate_error (remaining.and_then (λ input pos, by { simp [guard], }))
+
+end valid
 
 end valid_parsers
 
