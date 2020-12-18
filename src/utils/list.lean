@@ -184,9 +184,6 @@ lemma reduce_option_nth_iff {l : list (option α)} {x : α} :
   (∃ i, l.nth i = some (some x)) ↔ ∃ i, l.reduce_option.nth i = some x :=
 by rw [←mem_iff_nth, ←mem_iff_nth, reduce_option_mem_iff]
 
-@[simp] lemma map_id'' : map (@id α) = id :=
-funext is_lawful_functor.id_map
-
 lemma map_subtype {α β : Type*} {l : list (list (option α))} {f : α → β} {i j : ℕ} :
   l.nth i >>= (λ y, option.map (option.map f) (y.nth j)) =
   (l.map (map (option.map f))).nth i >>= (λ y, y.nth j) :=
@@ -387,40 +384,3 @@ end
 end zip
 
 end list
-
-section semigroup
-
-variables {α : Type*} (f : α → α → α) [is_associative α f] {x y : α} [semigroup α]
-
-@[simp] lemma comp_assoc_left : (f x) ∘ (f y) = (f (f x y)) :=
-by { ext z, rw [function.comp_apply, @is_associative.assoc _ f _ x y z], }
-
-/--
-Composing two multiplications on the left by `x` and `y`
-is equal to a multiplication on the left by `x * y`.
--/
-@[simp] lemma comp_semigroup_left [semigroup α] {x y : α} : ((*) x) ∘ ((*) y) = ((*) (x * y)) :=
-by simp only [comp_assoc_left]
-
-/--
-Composing two additions on the left by `x` and `y`
-is equal to a addition on the left by `x + y`.
--/
-@[simp] lemma comp_add_semigroup_left [add_semigroup α] {x y : α} : ((+) x) ∘ ((+) y) = ((+) (x + y)) :=
-by simp
-
-/--
-Composing two multiplications on the right by `x` and `y`
-is equal to a multiplication on the right by `y * w`.
--/
-@[simp] lemma comp_semigroup_right [semigroup α] {x y : α} : (* x) ∘ (* y) = (* (y * x)) :=
-by { ext z, rw [function.comp_app, mul_assoc] }
-
-/--
-Composing two multiplications on the right by `x` and `y`
-is equal to a multiplication on the right by `y + w`.
--/
-@[simp] lemma comp_add_semigroup_right [add_semigroup α] {x y : α} : (+ x) ∘ (+ y) = (+ (y + x)) :=
-by { ext z, rw [function.comp_app, add_assoc] }
-
-end semigroup

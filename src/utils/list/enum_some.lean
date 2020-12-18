@@ -451,8 +451,7 @@ begin
       ext,
       simp only [join, nth, enum_2d_some_cons, nth_map, take, hn, option.map_map,
                  reduce_option_append, add_comm, option.map_comp_map, function.comp_app,
-                 option.mem_def, option.map_eq_some', length_append, comp_add_semigroup_right,
-                 map_map] } }
+                 option.mem_def, option.map_eq_some', length_append, map_map, comp_add_right]} }
 end
 
 lemma take_enum_2d_some {L : list (list (option α))} {n : ℕ} :

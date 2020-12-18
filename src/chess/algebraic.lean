@@ -63,8 +63,8 @@ instance capture_has_repr : has_repr capture := ⟨capture.repr⟩
 
 variables {α β : Type} [has_zero α] [has_one α] [has_add α] [has_zero β] [has_one β] [has_add β]
 
-def file.parser' : parser α := numeral.char 'a' 'z' _
-def file.parser [fintype α] : parser α := numeral.char.of_fintype 'a' _
+def file.parser' : parser α := numeral.char _ 'a' 'z'
+def file.parser [fintype α] : parser α := numeral.char.of_fintype _ 'a'
 def rank.parser' : parser α := numeral.from_one α
 def rank.parser [fintype α] : parser α := numeral.from_one.of_fintype α
 def square.parser' : parser (α × β) :=

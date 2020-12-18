@@ -5,7 +5,8 @@ import utils.list
 instance has_repr_sum {α β : Type*} [has_repr α] [has_repr β] : has_repr (α ⊕ β) :=
 ⟨sum.elim (λ x, "sum.inl " ++ repr x) (λ x, "sum.inr " ++ repr x)⟩
 
-@[simp] lemma dlist_singleton {α : Type*} {a : α} : dlist.singleton a = dlist.lazy_of_list ([a]) := rfl
+@[simp] lemma dlist_singleton {α : Type*} {a : α} :
+  dlist.singleton a = dlist.lazy_of_list ([a]) := rfl
 
 open parser parse_result
 
@@ -14,43 +15,6 @@ open parser parse_result
 | (fail n _) := n
 
 namespace parser
-
-section numeral
-
-def numeral (α : Type) [has_zero α] [has_one α] [has_add α] : parser α :=
-nat.cast <$> nat
-
-def numeral.of_fintype (α : Type) [has_zero α] [has_one α] [has_add α] [fintype α] : parser α :=
-do
-  c ← nat,
-  guard (c < fintype.card α),
-  pure c
-
-def numeral.from_one (α : Type) [has_zero α] [has_one α] [has_add α] : parser α :=
-do
-  c ← nat,
-  guard (0 < c),
-  pure $ ((c - 1) : ℕ)
-
-def numeral.from_one.of_fintype (α : Type) [has_zero α] [has_one α] [has_add α] [fintype α] : parser α :=
-do
-  c ← nat,
-  guard (0 < c),
-  guard (c ≤ fintype.card α),
-  pure $ ((c - 1) : ℕ)
-
-def numeral.char (fromc toc : char) (α : Type) [has_zero α] [has_one α] [has_add α] : parser α :=
-do
-  c ← sat (λ c, fromc ≤ c ∧ c ≤ toc),
-  pure $ ((c.to_nat - fromc.to_nat) : ℕ)
-
-def numeral.char.of_fintype (fromc : char) (α : Type) [has_zero α] [has_one α] [has_add α]
-  [fintype α] : parser α :=
-do
-  c ← sat (λ c, fromc ≤ c ∧ c.to_nat - fintype.card α < fromc.to_nat),
-  pure $ ((c.to_nat - fromc.to_nat) : ℕ)
-
-end numeral
 
 section defn_lemmas
 
@@ -390,20 +354,9 @@ end
 
 @[simp] lemma failure_def : (failure : parser α) cb n = fail n dlist.empty := rfl
 
-lemma ch_of_empty (c : char) (cb : char_buffer) (h : cb.size = 0) (n : ℕ) :
-  ch c cb n = parse_result.fail n (dlist.singleton c.to_string) :=
-begin
-  rw ch,
-  rw sat,
-  rw eps,
-  simp only [pure_eq_done, and_then_eq_bind, decorate_error_failure_iff, true_and, dlist_singleton,
-             eq_self_iff_true],
-  use [n, dlist.empty],
-  simp only [h, not_lt, eq_self_iff_true, exists_false, zero_le, or_false, dif_neg, and_self,
-             bind_eq_fail, return_eq_pure, pure_eq_done]
-end
+section valid
 
-section valid_parsers
+variables {sep : parser unit}
 
 namespace valid
 
@@ -437,12 +390,14 @@ begin
         simp only [hn, hf, hp] } } },
 end
 
-lemma and_then {q : parser β} (hp : p.valid) (hq : q.valid) :
-  (p >> q).valid :=
-by { rw [and_then_eq_bind], exact hp.bind (λ _, hq) }
+lemma and_then {q : parser β} (hp : p.valid) (hq : q.valid) : (p >> q).valid :=
+hp.bind (λ _, hq)
 
 @[simp] lemma map (hp : p.valid) {f : α → β} : (f <$> p).valid :=
-by { rw ←is_lawful_monad.bind_pure_comp_eq_map, exact hp.bind (λ _, pure) }
+hp.bind (λ _, pure)
+
+@[simp] lemma seq {f : parser (α → β)} (hf : f.valid) (hp : p.valid) : (f <*> p).valid :=
+hf.bind (λ _, hp.map)
 
 @[simp] lemma mmap {l : list α} {f : α → parser β} (h : ∀ a ∈ l, (f a).valid) :
   (l.mmap f).valid :=
@@ -541,12 +496,122 @@ lemma remaining : remaining.valid :=
 λ _ _, ⟨le_refl _, λ h, h⟩
 
 lemma eof : eof.valid :=
-decorate_error (remaining.and_then (λ input pos, by { simp [guard], }))
+decorate_error (remaining.bind (λ _, guard))
+
+lemma foldr_core {f : α → β → β} {b : β} (hp : p.valid) :
+  ∀ {reps : ℕ}, (foldr_core f p b reps).valid
+| 0          := failure
+| (reps + 1) := orelse (hp.bind (λ _, foldr_core.bind (λ _, pure))) pure
+
+lemma foldr {f : α → β → β} (hp : p.valid) : valid (foldr f p b) :=
+λ _ _, foldr_core hp _ _
+
+lemma foldl_core {f : α → β → α} {p : parser β} (hp : p.valid) :
+  ∀ {a : α} {reps : ℕ}, (foldl_core f a p reps).valid
+| _ 0          := failure
+| _ (reps + 1) := orelse (hp.bind (λ _, foldl_core)) pure
+
+lemma foldl {f : α → β → α} {p : parser β} (hp : p.valid) : valid (foldl f a p) :=
+λ _ _, foldl_core hp _ _
+
+lemma many (hp : p.valid) : p.many.valid :=
+hp.foldr
+
+lemma many_char {p : parser char} (hp : p.valid) : p.many_char.valid :=
+hp.many.map
+
+lemma many' (hp : p.valid) : p.many'.valid :=
+hp.many.and_then eps
+
+lemma many1 (hp : p.valid) : p.many1.valid :=
+hp.map.seq hp.many
+
+lemma many_char1 {p : parser char} (hp : p.valid) : p.many_char1.valid :=
+hp.many1.map
+
+lemma sep_by1 {sep : parser unit} (hp : p.valid) (hs : sep.valid) : valid (sep_by1 sep p) :=
+hp.map.seq (hs.and_then hp).many
+
+lemma sep_by {sep : parser unit} (hp : p.valid) (hs : sep.valid) : valid (sep_by sep p) :=
+(hp.sep_by1 hs).orelse pure
+
+lemma fix_core {F : parser α → parser α} (hF : ∀ (p : parser α), p.valid → (F p).valid) :
+  ∀ (max_depth : ℕ), valid (fix_core F max_depth)
+| 0               := failure
+| (max_depth + 1) := hF _ (fix_core _)
+
+lemma digit : digit.valid :=
+decorate_error (sat.bind (λ _, pure))
+
+lemma nat : nat.valid :=
+decorate_error (digit.many1.bind (λ _, pure))
+
+lemma fix {F : parser α → parser α} (hF : ∀ (p : parser α), p.valid → (F p).valid) :
+  valid (fix F) :=
+λ _ _, fix_core hF _ _ _
 
 end valid
 
-end valid_parsers
+end valid
 
 end defn_lemmas
+
+section numeral
+
+variables (α : Type) [has_zero α] [has_one α] [has_add α]
+
+def numeral : parser α :=
+nat.cast <$> nat
+
+def numeral.of_fintype [fintype α] : parser α :=
+do
+  c ← nat,
+  guard (c < fintype.card α),
+  pure c
+
+def numeral.from_one : parser α :=
+do
+  c ← nat,
+  guard (0 < c),
+  pure $ ((c - 1) : ℕ)
+
+def numeral.from_one.of_fintype [fintype α] : parser α :=
+do
+  c ← nat,
+  guard (0 < c ∧ c ≤ fintype.card α),
+  pure $ ((c - 1) : ℕ)
+
+def numeral.char (fromc toc : char) : parser α :=
+do
+  c ← sat (λ c, fromc ≤ c ∧ c ≤ toc),
+  pure $ ((c.to_nat - fromc.to_nat) : ℕ)
+
+def numeral.char.of_fintype [fintype α] (fromc : char) : parser α :=
+do
+  c ← sat (λ c, fromc ≤ c ∧ c.to_nat - fintype.card α < fromc.to_nat),
+  pure $ ((c.to_nat - fromc.to_nat) : ℕ)
+
+variable {α}
+
+namespace valid
+
+lemma numeral : valid (numeral α) := nat.map
+
+lemma numeral.of_fintype [fintype α] : valid (numeral.of_fintype α) :=
+nat.bind (λ _, guard.bind (λ _, pure))
+
+lemma numeral.from_one : valid (numeral.from_one α) :=
+nat.bind (λ _, guard.bind (λ _, pure))
+
+lemma numeral.from_one.of_fintype [fintype α] : valid (numeral.from_one.of_fintype α) :=
+nat.bind (λ _, guard.bind (λ _, pure))
+
+end valid
+
+end numeral
+
+lemma ch_of_empty (c : char) (cb : char_buffer) (h : cb.size = 0) (n : ℕ) :
+  ch c cb n = parse_result.fail n (dlist.singleton c.to_string) :=
+by simp [ch, sat, h]
 
 end parser

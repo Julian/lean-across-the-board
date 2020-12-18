@@ -5,34 +5,6 @@ open option
 
 namespace option
 
-/--
-Composing an `option.map` with another `option.map` is equal to
-a single `option.map` of a composition of functions, fully applied.
-This is the reverse direction of `option.comp_map`.
--/
-@[simp] lemma map_map {α β γ : Type*}
-  (h : β → γ) (g : α → β) (x : option α) :
-  option.map h (option.map g x) = option.map (h ∘ g) x :=
-by { cases x; simp only [map_none', map_some'] }
-
-/--
-A single `option.map` of a composition of functions is equal to
-composing an `option.map` with another `option.map`, fully applied.
-This is the reverse direction of `option.map_map`.
--/
-lemma comp_map {α β γ : Type*}
-  (h : β → γ) (g : α → β) (x : option α) :
-  option.map (h ∘ g) x = option.map h (option.map g x) := (map_map _ _ _).symm
-
-/--
-Composing an `option.map` with another `option.map` is equal to a single `option.map` of composed functions.
--/
-@[simp] lemma map_comp_map {α β γ : Type*} (f : α → β) (g : β → γ) :
-  option.map g ∘ option.map f = option.map (g ∘ f) :=
-by { ext x, rw comp_map }
-
-@[simp] lemma map_eq_map {α β : Type*} {f : α → β} : (<$>) f = option.map f := rfl
-
 lemma map_congr {α β : Type*} {f g : α → β} {x : option α} (h : ∀ a ∈ x, f a = g a) :
   option.map f x = option.map g x :=
 by { cases x; simp only [map_none', map_some', h, mem_def] }
@@ -147,7 +119,7 @@ lemma bind_eq_bind {α β : Type*} {f : α → option β} {x : option α} :
 
 lemma bind_map_comm {α β : Type*} {x : option (option α) } {f : α → β} :
   x >>= option.map f = x.map (option.map f) >>= id :=
-by { cases x; simp }
+by { cases x, simp only [map_none', none_bind], simp only [map_some', id.def, some_bind]}
 
 @[simp] lemma bind_id_eq_join {α : Type*} {x : option (option α)} :
   x >>= id = x.join :=
