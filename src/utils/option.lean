@@ -12,6 +12,8 @@ by { cases x; simp only [map_none', map_some', h, mem_def] }
 @[simp] lemma map_id'' {α : Type*} : @option.map α α (λ x, x) = id :=
 by { funext x, cases x; refl }
 
+@[simp] lemma coe_eq_some {α : Type*} {a : α} : (a : option α) = some a := rfl
+
 @[simp] lemma map_of_id {α β : Type*} {f : α → β} :
   (λ (a : option α), option.map f (id a)) = option.map f :=
 by { funext x, cases x; refl }
@@ -132,6 +134,11 @@ by { rcases x with _ | _ | x; simp }
 @[simp] def pbind {α β : Type*} : Π (x : option α), (Π (a : α), a ∈ x → option β) → option β
 | none _       := none
 | x@(some a) f := f a rfl
+
+@[simp] def pbind_with {α β : Type*} :
+  Π (x : option α), (x = none → option β) → (Π (a : α), a ∈ x → option β) → option β
+| none     g _ := g rfl
+| (some a) _ f := f a rfl
 
 lemma pbind_eq_none {α β : Type*} {x : option α} {f : Π (a : α), a ∈ x → option β}
   (h' : ∀ a ∈ x, f a H = none → x = none) :
@@ -269,3 +276,14 @@ by { rcases x with _ | _ | x; simp }
 end pmap
 
 end option
+
+@[simp] def list.exactly_one {α : Type*} : list α → option α
+| []  := none
+| [x] := some x
+| _   := none
+
+@[simp] lemma list.exactly_one_some {α : Type*} {l : list α} {x : α} :
+  l.exactly_one = some x ↔ l = [x] :=
+begin
+  rcases l with (_ | ⟨_, _, _ | _⟩); simp
+end

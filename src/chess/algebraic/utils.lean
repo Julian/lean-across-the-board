@@ -1,4 +1,3 @@
-import data.nat.cast
 import data.fintype.card
 import utils.list
 
@@ -8,11 +7,31 @@ instance has_repr_sum {α β : Type*} [has_repr α] [has_repr β] : has_repr (α
 @[simp] lemma dlist_singleton {α : Type*} {a : α} :
   dlist.singleton a = dlist.lazy_of_list ([a]) := rfl
 
+@[simp] lemma dlist_lazy {α : Type*} {l : list α} :
+  dlist.lazy_of_list l = dlist.of_list l := rfl
+
 open parser parse_result
 
 @[simp] def parse_result.pos {α} : parse_result α → ℕ
 | (done n _) := n
 | (fail n _) := n
+
+def parse_result.map {α β} (f : α → β) : parse_result α → parse_result β
+| (done n a)   := done n (f a)
+| (fail n err) := fail n err
+
+def parse_result.map_const {α β} (b : β) : parse_result α → parse_result β
+| (done n _)   := done n b
+| (fail n err) := fail n err
+
+instance : functor parse_result :=
+{ map := λ _ _, parse_result.map,
+  map_const := λ _ _, parse_result.map_const }
+
+instance : is_lawful_functor parse_result :=
+{ map_const_eq := λ _ _, funext (λ _, by { ext a, cases a; refl }),
+  id_map := λ _, by { rintro (a | a); refl },
+  comp_map := λ _ _ _ f g, by { rintro (a | a); refl } }
 
 namespace parser
 
@@ -243,12 +262,26 @@ end
 by simp only [←bind_pure_comp_eq_map, exists_false, function.comp_app, or_false, pure_eq_done,
               bind_eq_fail, and_false]
 
+@[simp] lemma map_const_eq_done {b'} : (b <$ p) cb n = done n' b' ↔
+  ∃ (a : α), p cb n = done n' a ∧ b = b' :=
+by simp only [map_const_eq, function.const_apply, iff_self, map_eq_done]
+
+@[simp] lemma map_const_eq_fail : (b <$ p) cb n = fail n' err ↔ p cb n = fail n' err :=
+by simp only [map_const_eq, map_eq_fail]
+
+lemma map_const_rev_eq_done {b'} : (p $> b) cb n = done n' b' ↔
+  ∃ (a : α), p cb n = done n' a ∧ b = b' :=
+map_const_eq_done
+
+lemma map_rev_const_eq_fail : (p $> b) cb n = fail n' err ↔ p cb n = fail n' err :=
+map_const_eq_fail
+
 end map
 
 @[simp] lemma orelse_eq_orelse : p.orelse q = (p <|> q) := rfl
 
 @[simp] lemma orelse_eq_done : (p <|> q) cb n = done n' a ↔
-  (p cb n = done n' a ∨ ((∃ err, p cb n = fail n err) ∧ q cb n = done n' a)) :=
+  (p cb n = done n' a ∨ (q cb n = done n' a ∧ (∃ err, p cb n = fail n err))) :=
 begin
   rw ←orelse_eq_orelse,
   split,
@@ -267,7 +300,7 @@ begin
           split_ifs at h;
           exact h.elim } },
       { exact h.elim } } },
-  { rintro (h | ⟨⟨err, h⟩, h'⟩),
+  { rintro (h | ⟨h', err, h⟩),
     { simp only [parser.orelse, h, eq_self_iff_true, and_self] },
     { simp only [h, parser.orelse, eq_self_iff_true, not_true, if_false, ne.def],
       cases q cb n with posq resq posq errq,
@@ -431,7 +464,7 @@ by simp only [guard, apply_ite valid, pure, failure, or_true, if_true_left_eq_or
 begin
   intros cb n,
   cases hx : (p <|> q) cb n with posx resx posx errx,
-  { obtain h | ⟨⟨err, h⟩, h'⟩ := orelse_eq_done.mp hx,
+  { obtain h | ⟨h', err, h⟩ := orelse_eq_done.mp hx,
     { simpa only [h] using hp cb n },
     { simpa only [h'] using hq cb n } },
   { by_cases h : n = posx,
@@ -606,12 +639,195 @@ nat.bind (λ _, guard.bind (λ _, pure))
 lemma numeral.from_one.of_fintype [fintype α] : valid (numeral.from_one.of_fintype α) :=
 nat.bind (λ _, guard.bind (λ _, pure))
 
+lemma numeral.char {fromc toc : char} : valid (numeral.char α fromc toc) :=
+sat.bind (λ _, pure)
+
+lemma numeral.char.of_fintype [fintype α] {fromc : char} :
+  valid (numeral.char.of_fintype α fromc) :=
+sat.bind (λ _, pure)
+
 end valid
 
 end numeral
 
 lemma ch_of_empty (c : char) (cb : char_buffer) (h : cb.size = 0) (n : ℕ) :
   ch c cb n = parse_result.fail n (dlist.singleton c.to_string) :=
-by simp [ch, sat, h]
+by simp [ch, sat, h, and_then_eq_bind, dlist_singleton, decorate_error_failure_iff, not_lt,
+         eq_self_iff_true, exists_false, zero_le, or_false, dif_neg, exists_eq_right', and_self,
+         bind_eq_fail, exists_eq', false_and]
+
+section mem
+
+variables {α β : Type}
+
+def mem (p : parser α) (a : α) : Prop :=
+∃ (cb : char_buffer) (n n' : ℕ), p cb n = done n' a
+
+instance : has_mem α (parser α) := ⟨λ a p, p.mem a⟩
+
+instance char_buffer.inhabited : inhabited char_buffer := sigma.inhabited
+
+variables {p q : parser α} {a : α} {b : β} {cb : char_buffer} {n n' : ℕ} {err : dlist string}
+
+lemma mem_def : a ∈ p = ∃ (cb : char_buffer) (n n' : ℕ), p cb n = done n' a := rfl
+
+lemma mem_def_iff : a ∈ p ↔ ∃ (cb : char_buffer) (n n' : ℕ), p cb n = done n' a := iff.rfl
+
+lemma mem_of_done (h : p cb n = done n' a) : a ∈ p :=
+⟨cb, n, n', h⟩
+
+@[simp] lemma mem_pure (a) : a ∈ (pure a : parser α) :=
+by simp only [mem_def, and_true, eq_self_iff_true, pure_eq_done, exists_eq', exists_const]
+
+@[simp] lemma mem_decorate_errors_iff {errs} :
+  a ∈ decorate_errors errs p ↔ a ∈ p :=
+by simp only [mem_def, decorate_errors_success_iff]
+
+@[simp] lemma mem_decorate_error_iff {err} :
+  a ∈ decorate_error err p ↔ a ∈ p :=
+by simp only [mem_def, decorate_error_success_iff]
+
+@[simp] lemma mem_map (h : a ∈ p) ⦃f : α → β⦄ : f a ∈ f <$> p :=
+begin
+  obtain ⟨cb, n, n', h⟩ := h,
+  simp only [mem_def, map_eq_done],
+  exact ⟨cb, n, n', a, h, rfl⟩
+end
+
+@[simp] lemma mem_of_map {f : α → β} (h : b ∈ f <$> p) : ∃ (a : α), a ∈ p :=
+begin
+  obtain ⟨_, _, _, h⟩ := h,
+  obtain ⟨_, h, -⟩ := map_eq_done.mp h,
+  exact ⟨_, mem_of_done h⟩
+end
+
+@[simp] lemma mem_map_of_injective_iff {f : α → β} (hf : function.injective f) :
+  f a ∈ f <$> p ↔ a ∈ p :=
+by simp only [mem_def, hf, function.injective.eq_iff, map_eq_done, exists_eq_right]
+
+@[simp] lemma mem_map_const_iff {f : β} :
+  b ∈ f <$ p ↔ f = b ∧ ∃ (a : α), a ∈ p :=
+begin
+  simp only [mem_def, and_comm, exists_and_distrib_left, map_const_eq_done, and.congr_right_iff],
+  rintro -,
+  split;
+  { rintro ⟨_, _, _, _, h⟩,
+    exact ⟨_, _, _, _, h⟩ }
+end
+
+lemma mem_map_const_rev_iff {f : β} :
+  b ∈ p $> f ↔ f = b ∧ ∃ (a : α), a ∈ p :=
+mem_map_const_iff
+
+lemma mem_orelse_iff :
+  a ∈ (p <|> q) ↔ a ∈ p ∨ (∃ cb n n', q cb n = done n' a ∧ ∃ err, p cb n = fail n err) :=
+begin
+  simp only [mem_def, orelse_eq_done],
+  split,
+  { rintro ⟨_, _, _, h | ⟨h, _, h'⟩⟩,
+    { exact or.inl ⟨_, _, _, h⟩ },
+    { exact or.inr ⟨_, _, _, h, _, h'⟩ } },
+  { rintro (⟨_, _, _, h⟩ | ⟨_, _, _, h, h'⟩),
+    { exact ⟨_, _, _, or.inl h⟩ },
+    { exact ⟨_, _, _, or.inr ⟨h, h'⟩⟩ } }
+end
+
+lemma mem_of_mmap {f : α → parser β} {la : list α} {lb : list β} (h : lb ∈ la.mmap f) :
+  ∀ b ∈ lb, ∃ a ∈ la, b ∈ f a :=
+begin
+  induction lb with hd tl hl generalizing la,
+  { simp only [list.not_mem_nil, forall_prop_of_false, not_false_iff, forall_true_iff] },
+  { cases la with hd' tl',
+    { simpa only [mem_def, list.mmap_nil, exists_false, pure_eq_done, and_false] using h },
+    { simp only [mem_def, list.mmap_cons, bind_eq_done, pure_eq_done] at h,
+      obtain ⟨_, _, _, _, _, hx, _, _, h, rfl, rfl, rfl⟩ := h,
+      rintros b (rfl | hb),
+      { exact ⟨hd', list.mem_cons_self _ _, mem_of_done hx⟩ },
+      { obtain ⟨a, ha, ha'⟩ := hl ⟨_, _, _, h⟩ b hb,
+        refine ⟨a, list.mem_cons_of_mem _ ha, ha'⟩ } } }
+end
+
+lemma mem_of_mfirst {α β} {f : α → parser β} {l : list α} {b}
+  (h : b ∈ list.mfirst f l) :
+    ∃ p ∈ f <$> l, b ∈ p :=
+begin
+  induction l with hd tl hl,
+  { simpa [mem_def, list.mfirst] using h },
+  { simp only [list.mfirst, mem_orelse_iff] at h,
+    rcases h with h | ⟨_, _, _, h, -⟩,
+    { exact ⟨_, list.mem_cons_self _ _, h⟩, },
+    { obtain ⟨p, hp, hp'⟩ := hl (mem_of_done h),
+      exact ⟨p, list.mem_cons_of_mem _ hp, hp'⟩ } }
+end
+
+end mem
+
+section pmap
+
+variables {α β : Type}
+
+def pmap (p : parser α) {P : α → Prop} (f : Π a, P a → β) (H : ∀ a ∈ p, P a) :
+  parser β :=
+λ cb n, by clean begin
+  cases ha : (p cb n) with n' a n' err,
+  { exact done n' (f a (H a ⟨cb, n, n', ha⟩)) },
+  { exact fail n' err }
+end
+
+def attach (p : parser α) {P : α → Prop} (H : ∀ a ∈ p, P a) : parser {a // P a} :=
+pmap p subtype.mk H
+
+end pmap
+
+section option
+
+variables {α : Type} {p : parser α}
+
+def option (p : parser α) : parser (option α) :=
+some <$> p <|> pure none
+
+lemma valid.option (h : p.valid) : p.option.valid :=
+h.map.orelse valid.pure
+
+@[simp] lemma mem_option_some_iff {a : α} :
+  some a ∈ p.option ↔ a ∈ p :=
+by simp only [option, mem_orelse_iff, option.some_injective, exists_false, or_false,
+              pure_eq_done, and_false, false_and, mem_map_of_injective_iff]
+
+end option
+
+section try
+
+variables {α : Type} {p : parser α}
+
+def try (p : parser α) : parser α :=
+λ cb n, match p cb n with
+| (fail _ err) := fail n err
+| ok := ok
+end
+
+@[simp] lemma try_of_done_iff {cb n n' a} :
+  p.try cb n = done n' a ↔ p cb n = done n' a :=
+by cases hp : p cb n; simp only [hp, try, iff_self]
+
+@[simp] lemma try_of_fail_iff {cb n n' err} :
+  p.try cb n = fail n' err ↔ n = n' ∧ ∃ np, p cb n = fail np err :=
+begin
+  cases hp : p cb n;
+  simp only [try, hp, exists_false, and_false, iff_self, exists_eq_left']
+end
+
+lemma valid.try (h : p.valid) : p.try.valid :=
+begin
+  intros cb n,
+  cases hp : p cb n,
+  { simpa only [try, hp] using h cb n },
+  { simp only [try, hp, imp_self, and_true, parse_result.pos] }
+end
+
+@[simp] lemma mem_try_iff {a : α} : a ∈ p.try ↔ a ∈ p :=
+by simp [mem_def]
+
+end try
 
 end parser

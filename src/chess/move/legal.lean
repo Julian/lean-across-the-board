@@ -46,7 +46,6 @@ proofs for move legality without them being explicitly provided.
 
 -/
 
-namespace chess
 
 variables {m n: Type}
 
@@ -56,57 +55,89 @@ variables {ι : Type} [fintype ι] [decidable_eq ι]
 
 variables {b : chess.board m n ι chess.colored_piece}
 
-namespace move
+namespace chess
 
 /-- The finite set of (presumably squares) between two elements of `m` (or `n`). -/
 def between (left right : m) := {x | left ≤ x ∧ x ≤ right}.to_finset
 
+local notation x `-` y := (between x y).card
+
 /-- Two squares `pos` and `pos'` are adjacent (i.e. have no square between them). -/
 @[derive decidable_pred]
 def adjacent (pos pos' : m) :=
-(between pos pos').card = 2 ∨ (between pos' pos).card = 2
+pos - pos' = 2 ∨ pos' - pos = 2
 
 /-- Two squares `pos` and `pos'` have exactly one square between them. -/
 @[derive decidable_pred]
 def one_gap (pos pos' : m) :=
-(between pos pos').card = 3 ∨ (between pos' pos).card = 3
+pos - pos' = 3 ∨ pos' - pos = 3
 
 /-- A legal knight move moves 2 squares in one direction and 1 in the other. -/
 @[derive decidable_pred]
 def knight_move (stp enp : m × n) : Prop :=
-((adjacent stp.fst enp.fst) ∧ (one_gap stp.snd enp.snd)) ∨
-  ((one_gap stp.fst enp.fst) ∧ (adjacent stp.snd enp.snd))
+(adjacent stp.fst enp.fst ∧ one_gap stp.snd enp.snd) ∨
+  (one_gap stp.fst enp.fst ∧ adjacent stp.snd enp.snd)
+
+@[derive decidable_pred]
+def rook_move (stp enp : m × n) : Prop :=
+(stp.fst - enp.fst = 0 ∧ 0 < stp.snd - enp.snd) ∨
+  (stp.snd - enp.snd = 0 ∧ 0 < stp.fst - enp.fst)
+
+@[derive decidable_pred]
+def bishop_move (stp enp : m × n) : Prop :=
+stp.fst - enp.fst = stp.snd - enp.snd ∧ 0 < stp.fst - enp.fst
+
+@[derive decidable_pred]
+def queen_move (stp enp : m × n) : Prop :=
+rook_move stp enp ∨ bishop_move stp enp
+
+@[derive decidable_pred]
+def king_move (stp enp : m × n) : Prop :=
+adjacent stp.fst enp.fst ∨ adjacent stp.snd enp.snd
+
+-- no enpassant yet, no color based directionality, constant first type, changing second type
+-- and not capture
+@[derive decidable_pred]
+def pawn_move (stp enp : m × n) : Prop :=
+stp.fst = enp.fst ∧ adjacent stp.snd enp.snd
 
 open chess.piece
 
+def piece.move_rule : chess.piece → m × n → m × n → Prop
+| bishop := bishop_move
+| king := king_move
+| knight := knight_move
+| pawn := pawn_move
+| queen := queen_move
+| rook := rook_move
+
+instance piece.move_rule.decidable_pred :
+  Π (p : chess.piece) (stp : m × n), decidable_pred (p.move_rule stp)
+| bishop := bishop_move.decidable_pred
+| king := king_move.decidable_pred
+| knight := knight_move.decidable_pred
+| pawn := pawn_move.decidable_pred
+| queen := queen_move.decidable_pred
+| rook := rook_move.decidable_pred
+
+namespace move
+
 /-- A legal chess move. -/
 def is_legal (f : chess.move b) : Prop :=
-match (f.piece : chess.piece) with
-| knight := knight_move f.start_square f.end_square
-| _ := false
-end
+f.piece.piece.move_rule f.start_square f.end_square
 
 /-- A legal knight move. -/
-@[simp] lemma is_legal_knight_iff
-  {f : chess.move b}
-  (h_piece : knight = f.piece) :
-    f.is_legal ↔ knight_move f.start_square f.end_square := begin
+@[simp] lemma is_legal_knight_iff {f : chess.move b} (h_piece : knight = f.piece) :
+  f.is_legal ↔ knight_move f.start_square f.end_square :=
+begin
   unfold move.is_legal,
+  unfold_coes at h_piece,
   rw ←h_piece,
-  exact iff.rfl,
+  exact iff.rfl
 end
 
-instance is_legal_decidable {f : chess.move b} : decidable f.is_legal := begin
-  unfold is_legal,
-  unfold_coes,
-  cases f.piece.piece,
-  case knight { dsimp [is_legal], exact or.decidable, },
-  case bishop { exact decidable.false },
-  case king { exact decidable.false },
-  case pawn { exact decidable.false },
-  case queen { exact decidable.false },
-  case rook { exact decidable.false }
-end
+instance is_legal_decidable {f : chess.move b} : decidable f.is_legal :=
+piece.move_rule.decidable_pred f.piece.piece f.start_square f.end_square
 
 variable (b)
 
@@ -116,7 +147,7 @@ rules of chess.
 
 No inhabited instance because `move` is uninhabited.
 -/
-@[derive fintype, nolint has_inhabited_instance]
+@[derive fintype, nolint has_inhabited_instance, ext]
 structure legal extends chess.move b :=
 (legality: (is_legal to_move) . tactic.exact_dec_trivial)
 
@@ -149,6 +180,8 @@ lemma moves_from_def (pos : m × n) :
 @[simp] lemma mem_moves_from {pos : m × n} (x : move.legal b) :
     x ∈ (b.moves_from pos) ↔ x.to_move.start_square = pos :=
 by simp only [moves_from_def, set.mem_to_finset, set.mem_set_of_eq]
+
+variable (pos : m × n)
 
 end board
 

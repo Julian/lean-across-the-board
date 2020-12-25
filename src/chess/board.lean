@@ -85,6 +85,9 @@ def width (b : board m n ι K) : ℕ := fintype.card n
 /-- The height of the board. Explicit argument for projection notation. -/
 @[nolint unused_arguments]
 def height (b : board m n ι K) : ℕ := fintype.card m
+/-- The number of pieces on the board. Explicit argument for projection notation. -/
+@[nolint unused_arguments]
+def num_pieces (b : board m n ι K) : ℕ := fintype.card ι
 
 /-- The state of the board, where pieces of the same type are equivalent -/
 def reduce (b : board m n ι K) : playfield m n K :=
@@ -169,6 +172,11 @@ def piece_at
   (pos : m × n)
   (h : b.contents.occupied_at pos . tactic.exact_dec_trivial) : K :=
 b.pieces (b.contents.index_at ⟨pos, h⟩)
+
+/-- The square of a provided index. -/
+def pos_from
+  (b : board m n ι K) : ι → m × n :=
+b.contents.pos_from b.injects b.contains
 
 end board
 

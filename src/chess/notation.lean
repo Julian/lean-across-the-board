@@ -41,7 +41,10 @@ def listboard (B : list (list (option chess.colored_piece))) :
     end
   }
 
+section fin_instance
+
 variables {K : Type*} {x : K} {hd : list K} {tl : list (list K)}
+variables {hd' : list (option K)} {tl' : list (list (option K))}
 
 instance board_fin0 : has_zero (fin (hd :: tl).length) :=
 ⟨⟨0, by simp only [nat.succ_pos', list.length]⟩⟩
@@ -59,3 +62,19 @@ instance board_fin1' :
   by { cases hd;
        simp only [nat.succ_pos', nat.succ_lt_succ_iff, list.length,
                   pi.one_apply, lt_max_iff, true_or, list.foldr, list.map]}⟩⟩
+
+instance board_fin0'' :
+  has_zero (fin (((x : option K) :: hd') :: tl').join.reduce_option.length) :=
+⟨⟨0, by simp only [nat.succ_pos', list.join, list.reduce_option_cons_of_some, list.cons_append,
+                     list.length, option.coe_eq_some]⟩⟩
+
+-- instance board_fin1'' {y : K} :
+--   has_one (fin (((x : option K) :: hd') :: tl').join.reduce_option.length) :=
+-- ⟨⟨1, by { simp only [nat.succ_pos', list.join, list.reduce_option_cons_of_some, list.cons_append,
+--                      list.length, option.coe_eq_some], }⟩⟩
+-- instance board_fin1'' :
+--   has_one (fin ((some x :: hd') :: tl').join.reduce_option.length) :=
+-- ⟨⟨1, by { simp [nat.succ_pos', list.join, list.reduce_option_cons_of_some, list.cons_append,
+--                    list.length],  }⟩⟩
+
+end fin_instance

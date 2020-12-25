@@ -31,6 +31,16 @@ end mmap
 
 variables {α β γ : Type*}
 
+@[simp] lemma head'_nil {l : list α} :
+  l.head' = none ↔ l = [] :=
+by { cases l; simp }
+
+@[simp] lemma head'_cons {l : list α} {x : α} :
+  l.head' = some x ↔ ∃ l', l = (x :: l') :=
+by { cases l; simp }
+
+@[simp] lemma map_id'' : list.map (@id α) = id := by { ext, simp only [id.def, map_id] }
+
 lemma nth_append_right {l₁ l₂ : list α} {n : ℕ} (hn : l₁.length ≤ n) :
   (l₁ ++ l₂).nth n = l₂.nth (n - l₁.length) :=
 begin

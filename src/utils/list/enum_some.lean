@@ -427,8 +427,8 @@ begin
   induction l with l ls hl generalizing lx h,
   { simpa only [not_mem_nil, enum_2d_some_nil] using h },
   { cases l with hd tl,
-    { simp only [mem_cons_iff, map_id'', add_zero, enum_some_nil, option.map_id'',
-                 reduce_option_nil, id.def, length, enum_2d_some_cons] at h,
+    { simp only [mem_cons_iff, map_id, add_zero, enum_some_nil, option.map_id'', reduce_option_nil,
+                 length, enum_2d_some_cons, exists_eq_right, mem_map] at h,
       cases h,
       { simp only [h, length, zero_le] },
       { simpa only [max_eq_right, map, length, zero_le, foldr] using hl h } },
@@ -443,7 +443,8 @@ lemma nth_enum_2d_some {l : list (list (option α))}
   l.enum_2d_some.nth n = (l.nth n).map (λ l', list.map (option.map (+ (l.take n).join.reduce_option.length)) l'.enum_some) :=
 begin
   induction n with n hn generalizing l,
-  { simp only [map_id'', add_zero, join, option.map_id'', reduce_option_nil, id.def, length, enum_2d_some_nth0, take] },
+  { simp only [add_zero, join, option.map_id'', reduce_option_nil, length, enum_2d_some_nth0, take,
+               map_id] },
   { cases l with l ls,
     { simp only [nth, enum_2d_some_nil, option.map_none']},
     { simp only [length] at h,
@@ -462,8 +463,8 @@ begin
   { cases n,
     { simp only [take, enum_2d_some_nil] },
     { cases l,
-      { simp only [hL, eq_self_iff_true, and_self, take, enum_2d_some, map_id'', add_zero,
-                   option.map_id'', reduce_option_nil, id.def, length] },
+      { simp only [hL, eq_self_iff_true, and_self, take, enum_2d_some, add_zero, option.map_id'',
+                   reduce_option_nil, id.def, length, map_id''] },
       { simp only [←hL, map_take, eq_self_iff_true, and_self, take, enum_2d_some_cons] } } },
 end
 

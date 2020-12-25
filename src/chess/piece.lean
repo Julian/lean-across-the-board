@@ -30,19 +30,21 @@ structure colored_piece :=
 /-- "Forget" a piece's color. -/
 instance : has_coe colored_piece piece := ⟨colored_piece.piece⟩
 
-@[pattern] def white_bishop : colored_piece := ⟨piece.bishop, color.white⟩
-@[pattern] def white_king : colored_piece := ⟨piece.king, color.white⟩
-@[pattern] def white_knight : colored_piece := ⟨piece.knight, color.white⟩
-@[pattern] def white_pawn : colored_piece := ⟨piece.pawn, color.white⟩
-@[pattern] def white_queen : colored_piece := ⟨piece.queen, color.white⟩
-@[pattern] def white_rook : colored_piece := ⟨piece.rook, color.white⟩
+@[simp] protected lemma coe {p : colored_piece} : (p : piece) = p.piece := rfl
 
-@[pattern] def black_bishop : colored_piece := ⟨piece.bishop, color.black⟩
-@[pattern] def black_king : colored_piece := ⟨piece.king, color.black⟩
-@[pattern] def black_knight : colored_piece := ⟨piece.knight, color.black⟩
-@[pattern] def black_pawn : colored_piece := ⟨piece.pawn, color.black⟩
-@[pattern] def black_queen : colored_piece := ⟨piece.queen, color.black⟩
-@[pattern] def black_rook : colored_piece := ⟨piece.rook, color.black⟩
+@[pattern, simps] def white_bishop : colored_piece := ⟨piece.bishop, color.white⟩
+@[pattern, simps] def white_king : colored_piece := ⟨piece.king, color.white⟩
+@[pattern, simps] def white_knight : colored_piece := ⟨piece.knight, color.white⟩
+@[pattern, simps] def white_pawn : colored_piece := ⟨piece.pawn, color.white⟩
+@[pattern, simps] def white_queen : colored_piece := ⟨piece.queen, color.white⟩
+@[pattern, simps] def white_rook : colored_piece := ⟨piece.rook, color.white⟩
+
+@[pattern, simps] def black_bishop : colored_piece := ⟨piece.bishop, color.black⟩
+@[pattern, simps] def black_king : colored_piece := ⟨piece.king, color.black⟩
+@[pattern, simps] def black_knight : colored_piece := ⟨piece.knight, color.black⟩
+@[pattern, simps] def black_pawn : colored_piece := ⟨piece.pawn, color.black⟩
+@[pattern, simps] def black_queen : colored_piece := ⟨piece.queen, color.black⟩
+@[pattern, simps] def black_rook : colored_piece := ⟨piece.rook, color.black⟩
 
 notation ` ♔ ` := chess.white_king
 notation ` ♕ ` := chess.white_queen
@@ -60,7 +62,7 @@ notation ` ♟︎ ` := chess.black_pawn
 
 notation ` __ ` := none
 
-def piece_repr : colored_piece → string
+def colored_piece_repr : colored_piece → string
 | ♔ := "♔"
 | ♕ := "♕"
 | ♖ := "♖"
@@ -74,6 +76,36 @@ def piece_repr : colored_piece → string
 | ♞ := "♞"
 | ♟︎ := "♟︎"
 
-instance : has_repr colored_piece := ⟨piece_repr⟩
+instance : has_repr colored_piece := ⟨colored_piece_repr⟩
+
+def piece_repr : piece → string
+| ♔ := "♔"
+| ♕ := "♕"
+| ♖ := "♖"
+| ♗ := "♗"
+| ♘ := "♘"
+| ♙ := "♙"
+
+instance : has_repr piece := ⟨piece_repr⟩
+
+abbreviation promotions : Type := {p : piece // p = ♕ ∨ p = ♖ ∨ p = ♗ ∨ p = ♘}
+
+@[derive [decidable_eq, fintype]]
+inductive capture
+| capture
+
+def capture.repr : capture → string
+| capture.capture := "capture"
+
+instance capture_has_repr : has_repr capture := ⟨capture.repr⟩
+
+@[derive [decidable_eq, fintype]]
+inductive castle
+| kings
+| queens
+
+def castle.repr : castle → string
+| castle.kings := "kingside"
+| castle.queens := "queenside"
 
 end chess
