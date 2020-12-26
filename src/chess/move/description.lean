@@ -40,8 +40,25 @@ option.map (λ ix, (b.pos_from ix, d.to_sq))
     (d.from_sq.fst = none ∨ some (b.pos_from ix).fst = d.from_sq.fst) ∧
     (d.from_sq.snd = none ∨ some (b.pos_from ix).snd = d.from_sq.snd) ∧
     (chess.piece.move_rule ((chess.colored_piece.piece ∘ b.pieces) ix)
-    (b.pos_from ix) d.to_sq)
+      (b.pos_from ix) d.to_sq)
   ) (list.fin_range i)))
+
+lemma run_move'_eq_some (b') : b.run_move' d = some b' ↔
+  ∃ ix : fin i, (b.pieces ix).piece = d.figure ∧
+  (d.from_sq.fst = none ∨ some (b.pos_from ix).fst = d.from_sq.fst) ∧
+  (d.from_sq.snd = none ∨ some (b.pos_from ix).snd = d.from_sq.snd) ∧
+  (chess.piece.move_rule ((chess.colored_piece.piece ∘ b.pieces) ix) (b.pos_from ix) d.to_sq) :=
+begin
+  simp only [run_move', list.filter_singleton_of_nodup _ (list.fin_range i) _ (list.nodup_fin_range i), true_and,
+  forall_prop_of_true, list.mem_fin_range, not_and, list.exactly_one_some, function.comp_app, ne.def,
+  option.map_eq_some'],
+  split,
+  { rintro ⟨ix, ⟨hix, h⟩, H⟩,
+    simp [hix],
+  },
+  {  },
+  -- simp_rw ,
+end
 
 def run_move : option ((m × n) × (m × n)) :=
 if d'.capture = none
@@ -51,6 +68,26 @@ if d'.capture = none
   else if b.contents d'.to_description.to_sq = none
     then none
     else b.run_move' d'.to_description
+
+@[simp] lemma run_move_eq_some (b') : b.run_move d' = some b' ↔
+  b.run_move' d'.to_description = some b' ∧ (
+  (d'.capture = none ∧ b.contents d'.to_description.to_sq = none) ∨
+  (d'.capture ≠ none ∧ b.contents d'.to_description.to_sq ≠ none)) :=
+begin
+  cases hd : d'.capture;
+  cases hb : b.contents d'.to_description.to_sq;
+  simp [run_move, hd, hb],
+end
+
+@[simp] lemma run_move_eq_none : b.run_move d' = none ↔
+  b.run_move' d'.to_description = none ∨ (
+  (d'.capture = none ∧ b.contents d'.to_description.to_sq ≠ none) ∨
+  (d'.capture ≠ none ∧ b.contents d'.to_description.to_sq = none)) :=
+begin
+  cases hd : d'.capture;
+  cases hb : b.contents d'.to_description.to_sq;
+  simp [run_move, hd, hb],
+end
 
 end board
 

@@ -113,6 +113,21 @@ def guarini_algebraic : list string :=
 ＿, ＿, ＿;
 ♞, ＿, ♞)
 -/
+-- set_option trace.simp_lemmas true
+-- set_option trace.simplify.rewrite true
+
+lemma guarini_SAN :
+  ((starting_position.run_move_sequence_no_capture guarini_algebraic).map chess.board.reduce) =
+  some ending_position.reduce :=
+begin
+  rw guarini_algebraic,
+  rw chess.board.run_move_sequence_no_capture,
+  simp only [option.coe_eq_some, list.mfoldl_cons, list.mfoldl_nil, option.bind_eq_some,
+             option.map_eq_some', bind_pure],
+  simp only [option.pbind_with_eq_some_of_const_none],
+end
+
+#exit
 
 
 def first_move : chess.move starting_position :=
@@ -128,10 +143,9 @@ example : ∀ ix (hix : ix < guarini_seq.elements.length),
 lemma guarini : starting_position.has_sequence_to ending_position :=
 ⟨guarini_seq.elements.length, guarini_seq.to_sequence, dec_trivial⟩
 
-lemma guarini_SAN :
-  ((starting_position.run_move_sequence_no_capture guarini_algebraic).map chess.board.reduce) =
-  some ending_position.reduce := dec_trivial
-  /-
+-- #check eval_expr
+
+/-
 deep recursion was detected at 'replace' (potential solution: increase stack space in your system)
 -/
 

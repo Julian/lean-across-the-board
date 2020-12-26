@@ -393,4 +393,41 @@ end
 
 end zip
 
+section filter
+
+lemma filter_singleton_of_nodup {α : Type*} (p : α → Prop) [decidable_pred p]
+  (l : list α) (a : α) (hl : nodup l) :
+  l.filter p = [a] ↔ a ∈ l ∧ p a ∧ (∀ b, b ∈ l → b ≠ a → ¬ p b) :=
+begin
+  induction l with hd tl IH generalizing a,
+  { simp },
+  { simp only [nodup_cons] at hl,
+    by_cases hp : p hd,
+    { simp only [hp, filter_eq_nil, mem_cons_iff, forall_eq_or_imp, not_true, ne.def,
+                 filter_cons_of_pos],
+      split,
+      { rintro ⟨rfl, h⟩,
+        simp only [true_and, forall_prop_of_false, true_or, eq_self_iff_true, not_true,
+                   not_false_iff, hp],
+        exact (λ a ha _, h a ha) },
+      { simp only [and_imp],
+        rintro (rfl | H) h' h'' h,
+        { refine ⟨rfl, λ b hb, _⟩,
+          exact (h b hb (λ H, hl.left (H ▸ hb))) },
+        { have : hd = a,
+          { contrapose h'',
+            simp [h''] },
+          subst this,
+          simpa [H] using hl.left } } },
+    { simp only [hp, IH hl.right, true_and, and_imp, mem_cons_iff, forall_eq_or_imp,
+                 filter_cons_of_neg, and.congr_left_iff, ne.def, not_false_iff, forall_true_iff],
+      intro ha,
+      have : a ≠ hd,
+        { contrapose! hp,
+          exact hp ▸ ha },
+      simp [this] } }
+end
+
+end filter
+
 end list
