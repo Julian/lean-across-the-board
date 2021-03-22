@@ -17,4 +17,4 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Build via lean
-      uses: leanprover-contrib/lean-build-action@master
+      uses: Julian/lean-build-action@lean4
