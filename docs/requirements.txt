@@ -34,7 +34,7 @@ pyenchant==3.1.1
     # via sphinxcontrib-spelling
 pygments-github-lexers==0.0.5
     # via -r requirements.in
-pygments==2.7.2
+pygments==2.7.4
     # via
     #   pygments-github-lexers
     #   sphinx
