@@ -152,7 +152,7 @@ for a `pf : playfield m n ι`, at `pos : m × n`, `pf pos = some ix`.
 The predicate that `pf.occupied_at pos` for some pos is decidable
 if the indices `ix : ι` are finite and decidably equal.
 -/
-instance [fintype ι] [decidable_eq ι] : decidable_pred pf.occupied_at :=
+instance occupied_at.decidable_pred [fintype ι] [decidable_eq ι] : decidable_pred pf.occupied_at :=
   set.decidable_set_of (λ (a : m × n), ∃ (ix : ι), pf a = some ix)
 
 variable {pf}
@@ -245,7 +245,7 @@ The predicate that `λ p, p ∈ pf.occupied_positions` for some pos is
 decidable if the indices `ix : ι` are finite and decidably equal.
 -/
 instance occcupied_positions_mem_decidable [fintype ι] [decidable_eq ι] :
-  decidable_pred (pf.occupied_positions) :=
+  decidable_pred (∈ pf.occupied_positions) :=
 occupied_at.decidable_pred (λ (pos : m × n), pf pos)
 
 variables [fintype m] [fintype n]

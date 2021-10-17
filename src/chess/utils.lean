@@ -1,5 +1,4 @@
 import data.matrix.notation
-import data.vector2
 
 /-!
 

@@ -98,13 +98,6 @@ instance : has_mem ι (board m n ι K) :=
 ⟨λ ix b, ix ∈ b.contents⟩
 
 /--
-Explicitly state that the proposition that an index `ix : ι` is in the board
-is `decidable`, when the `ι` is itself `decidable_eq`.
--/
-instance contents_decidable {b : board m n ι K} {ix : ι} : decidable (ix ∈ b) :=
-set.decidable_mem ((∈) ix) b
-
-/--
 A board contains all of the `ix : ι` indices that it knows of,
 stated explicitly. Uses the `board.contains` constraint.
 -/
