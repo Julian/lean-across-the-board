@@ -72,7 +72,7 @@ sphinxcontrib-spelling==7.2.1
     # via -r requirements.in
 toml==0.10.2
     # via -r requirements.in
-urllib3==1.26.17
+urllib3==1.26.18
     # via requests
 
 # The following packages are considered to be unsafe in a requirements file:
